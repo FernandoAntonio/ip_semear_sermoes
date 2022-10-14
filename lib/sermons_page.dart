@@ -180,11 +180,14 @@ class _SermonsSingleBookPageView
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(sermon.title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16.0,
-                          color: semearGreen)),
+                  Text(
+                    sermon.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0,
+                      color: semearOrange,
+                    ),
+                  ),
                   const SizedBox(height: 8.0),
                   Text(
                     sermon.passage,
@@ -192,7 +195,10 @@ class _SermonsSingleBookPageView
                   ),
                 ],
               ),
-              const Icon(Icons.arrow_drop_down),
+              const Icon(
+                Icons.arrow_drop_down,
+                color: Colors.grey,
+              ),
             ],
           ),
         ),
@@ -214,11 +220,14 @@ class _SermonsSingleBookPageView
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(sermon.title,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16.0,
-                                  color: semearOrange)),
+                          Text(
+                            sermon.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.0,
+                              color: semearGreen,
+                            ),
+                          ),
                           const SizedBox(height: 8.0),
                           Text(
                             sermon.passage,
@@ -226,7 +235,10 @@ class _SermonsSingleBookPageView
                           ),
                         ],
                       ),
-                      const Icon(Icons.arrow_drop_up),
+                      const Icon(
+                        Icons.arrow_drop_up,
+                        color: Colors.grey,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8.0),

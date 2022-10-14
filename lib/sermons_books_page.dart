@@ -70,16 +70,11 @@ class _SermonsBooksPageView
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Row(
-        children: [
-          Image.asset(
-            'assets/logosite.png',
-            width: 40.0,
-          ),
-          const SizedBox(width: 16.0),
-          const Text('Sermões IP Semear'),
-        ],
-      )),
+          centerTitle: true,
+          title: Image.asset(
+            'assets/logotipo.png',
+            height: kToolbarHeight * 0.7,
+          )),
       body: state._isLoading
           ? _buildLoading(context)
           : FutureBuilder<dom.NodeList?>(
@@ -104,9 +99,9 @@ class _SermonsBooksPageView
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.book_outlined,
-                                      color: semearGreen,
+                                      color: semearOrange.withOpacity(0.5),
                                     ),
                                     const SizedBox(width: 16.0),
                                     Text(
@@ -118,9 +113,9 @@ class _SermonsBooksPageView
                                     ),
                                   ],
                                 ),
-                                const Icon(
+                                Icon(
                                   Icons.chevron_right,
-                                  color: semearGreen,
+                                  color: semearOrange.withOpacity(0.5),
                                 ),
                               ],
                             ),

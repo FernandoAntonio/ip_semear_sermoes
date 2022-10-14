@@ -115,7 +115,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
               : _duration != null
                   ? _durationText
                   : '',
-          style: const TextStyle(fontSize: 16.0),
+          style: const TextStyle(fontSize: 16.0, color: Colors.grey),
         ),
       ],
     );

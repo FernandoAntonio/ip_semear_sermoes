@@ -15,10 +15,13 @@ class SermonsBooksPage extends StatefulWidget {
 }
 
 class SermonsBooksPageController extends State<SermonsBooksPage> {
+  late Future<dom.NodeList?> _pageLoader;
+  late bool _hasError;
   late Dio _dio;
-  late bool _isLoading;
 
   Future<dom.NodeList?> _getBookList() async {
+    setState(() => _hasError = false);
+
     try {
       final response = await _dio.get('http://ipsemear.org/sermoes-audio/');
       final parsed = parse(response.data);
@@ -27,17 +30,13 @@ class SermonsBooksPageController extends State<SermonsBooksPage> {
 
       return list;
     } catch (e) {
-      print(e);
+      _hasError = true;
       return null;
     }
   }
 
   Future<void> _getSermonsFromBook(String url, String bookName) async {
-    setState(() => _isLoading = true);
-
-    final navigator = Navigator.of(context);
-
-    navigator.push(
+    Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SermonsPage(
           bookSermonUrl: url,
@@ -45,17 +44,19 @@ class SermonsBooksPageController extends State<SermonsBooksPage> {
         ),
       ),
     );
-
-    setState(() => _isLoading = false);
   }
 
   void _onBookPressed(String url, String bookName) => _getSermonsFromBook(url, bookName);
+
+  void _onRetryPressed() => _pageLoader = _getBookList();
 
   @override
   void initState() {
     super.initState();
     _dio = Dio();
-    _isLoading = false;
+    _hasError = false;
+
+    _pageLoader = _getBookList();
   }
 
   @override
@@ -75,14 +76,14 @@ class _SermonsBooksPageView
             'assets/logotipo.png',
             height: kToolbarHeight * 0.7,
           )),
-      body: state._isLoading
-          ? _buildLoading(context)
+      body: state._hasError
+          ? _buildError()
           : FutureBuilder<dom.NodeList?>(
-              future: state._getBookList(),
+              future: state._pageLoader,
               builder: (context, snapshot) {
                 if (snapshot.data != null && snapshot.hasData) {
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+                    padding: const EdgeInsets.all(4.0),
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
                       final data = snapshot.data![index].nodes.first;
@@ -125,12 +126,46 @@ class _SermonsBooksPageView
                     },
                   );
                 } else {
-                  return _buildLoading(context);
+                  return _buildLoading();
                 }
               }),
     );
   }
 
-  Widget _buildLoading(BuildContext context) =>
-      const Center(child: CircularProgressIndicator());
+  Widget _buildLoading() => Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Center(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text(
+              'Carregando, isso pode demorar vários segundos',
+              style: TextStyle(fontSize: 16.0, color: semearGreen),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 32.0),
+            CircularProgressIndicator(),
+          ],
+        )),
+      );
+
+  Widget _buildError() => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Oops, algo deu errado',
+                style: TextStyle(fontSize: 16.0, color: semearOrange),
+              ),
+              const SizedBox(height: 16.0),
+              TextButton(
+                onPressed: state._onRetryPressed,
+                child: const Text('Tentar Novamente'),
+              ),
+            ],
+          ),
+        ),
+      );
 }

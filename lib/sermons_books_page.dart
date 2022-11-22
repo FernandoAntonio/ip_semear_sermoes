@@ -74,7 +74,7 @@ class _SermonsBooksPageView
           centerTitle: true,
           title: Image.asset(
             'assets/logotipo.png',
-            height: kToolbarHeight * 0.7,
+            height: kToolbarHeight * 0.5,
           )),
       body: state._hasError
           ? _buildError()

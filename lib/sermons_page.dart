@@ -1,4 +1,4 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:dio/dio.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
@@ -6,8 +6,8 @@ import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:ip_semear_sermoes/main.dart';
 
+import 'audio_player_handler.dart';
 import 'models.dart';
-import 'player_widget.dart';
 import 'widget_view.dart';
 
 class SermonsPage extends StatefulWidget {
@@ -27,7 +27,6 @@ class SermonsPage extends StatefulWidget {
 class SermonsSingleBookPageController extends State<SermonsPage> {
   late Future<List<Sermon>> _pageLoader;
   late Dio _dio;
-  late AudioPlayer _player;
   late List<ExpandableController> _expandableControllers;
   late bool _showPlayer;
   late bool _isLoadingAudio;
@@ -99,6 +98,17 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     return sermons.reversed.toList();
   }
 
+  void _onPlayPressed() => audioHandler.play();
+
+  void _onPausePressed() => audioHandler.pause();
+
+  void _onSeekChanged(Duration newDuration) => audioHandler.seek(newDuration);
+
+  void _onStopPressed() {
+    audioHandler.stop();
+    setState(() => _showPlayer = false);
+  }
+
   Future<void> _onExpandablePressed(int index) async {
     setState(() {
       _expandableControllers[index].toggle();
@@ -111,17 +121,15 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
         _expandableControllers[i].toggle();
       }
     }
-
-    await _player.stop();
   }
 
-  Future<void> _onLoadAudioPressed(String mp3Url) async {
+  Future<void> _onLoadAudioPressed(Sermon sermon) async {
     setState(() {
       _showPlayer = false;
       _isLoadingAudio = true;
     });
 
-    await _player.setSource(UrlSource(mp3Url));
+    await audioHandler.setSermon(sermon);
 
     setState(() {
       _showPlayer = true;
@@ -135,7 +143,6 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
   void initState() {
     super.initState();
     _dio = Dio();
-    _player = AudioPlayer();
     _expandableControllers = [];
     _showPlayer = false;
     _isLoadingAudio = false;
@@ -288,9 +295,9 @@ class _SermonsSingleBookPageView
             child: state._isLoadingAudio
                 ? _buildLoadingAudio()
                 : state._showPlayer
-                    ? PlayerWidget(player: state._player)
+                    ? _buildControls()
                     : TextButton(
-                        onPressed: () => state._onLoadAudioPressed(sermon.mp3Url),
+                        onPressed: () => state._onLoadAudioPressed(sermon),
                         child: const Text('Carregar Áudio')),
           ),
         ],
@@ -337,4 +344,61 @@ class _SermonsSingleBookPageView
           ),
         ),
       );
+
+  Widget _buildControls() {
+    return Column(
+      children: [
+        // Play/pause/stop buttons.
+        StreamBuilder<bool>(
+          stream: audioHandler.playbackState.map((state) => state.playing).distinct(),
+          builder: (context, snapshot) {
+            final playing = snapshot.data ?? false;
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  color: semearGreen,
+                  icon: Icon(
+                    playing ? Icons.pause : Icons.play_arrow,
+                  ),
+                  iconSize: 40.0,
+                  onPressed: playing ? state._onPausePressed : state._onPlayPressed,
+                ),
+                const SizedBox(width: 8.0),
+                IconButton(
+                  color: semearGreen,
+                  icon: const Icon(
+                    Icons.stop,
+                  ),
+                  iconSize: 40.0,
+                  onPressed: state._onStopPressed,
+                ),
+              ],
+            );
+          },
+        ),
+        // A seek bar.
+        ValueListenableBuilder<ProgressBarState>(
+          valueListenable: audioHandler.progressNotifier,
+          builder: (_, value, __) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: ProgressBar(
+                thumbColor: semearGreen,
+                baseBarColor: semearGreen.withOpacity(0.1),
+                bufferedBarColor: semearGreen.withOpacity(0.3),
+                progressBarColor: semearGreen,
+                timeLabelTextStyle: const TextStyle(color: Colors.grey, fontSize: 12.0),
+                timeLabelPadding: 4.0,
+                progress: value.current,
+                buffered: value.buffered,
+                total: value.total,
+                onSeek: state._onSeekChanged,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
 }

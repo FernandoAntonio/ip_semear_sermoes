@@ -10,11 +10,15 @@ dependencies:
   flutter:
     sdk: flutter
 
-  audioplayers: ^1.1.1
+  #  audioplayers: ^1.1.1
   audio_service: ^0.18.7
+  audio_video_progress_bar: ^0.11.0
   dio: ^4.0.6
   expandable: ^5.0.1
-  html: ^0.15.0
+  just_audio: ^0.9.30
+  html: ^0.15.1
+  rxdart: ^0.27.7
+
 
 dev_dependencies:
   flutter_test:

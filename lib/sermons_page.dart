@@ -194,7 +194,7 @@ class _SermonsSingleBookPageView
                     },
                   );
                 } else {
-            return const SemearLoadingWidget();
+                  return const SemearLoadingWidget();
                 }
               },
             ),

@@ -1,16 +1,9 @@
-# ip_semear_sermoes
+# IP Semear Sermões
 
-An application to listen to the IP Semear podcasts
+Um aplicativo criado com o intuito de se ouvir os sermões presentes no site da [IP Semear](https://ipsemear.org/sermoes-audio/) de forma simples e prática, tem sua organização de livros e capítulos de cada sermão idêntica ao website.
 
-## Getting Started
+Também conta com reprodução em segundo plano e controle de pausa e parada na barra de tarefas do Android.
 
-This project is a starting point for a Flutter application.
+# Download
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+[Clique aqui](https://github.com/FernandoAntonio/ip_semear_sermoes/releases/download/1.0.0/ip_semear.apk) para fazer o download do APK diretamente do GitHub.

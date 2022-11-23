@@ -7,3 +7,6 @@ Também conta com reprodução em segundo plano e controle de pausa e parada na 
 # Download
 
 [Clique aqui](https://github.com/FernandoAntonio/ip_semear_sermoes/releases/download/1.0.0/ip_semear.apk) para fazer o download do APK diretamente do GitHub.
+
+# Screenshots
+<img src="screenshots/screenshot1.png" width="300" height="683"/> <img src="screenshots/screenshot2.png" width="300" height="683"/> <img src="screenshots/screenshot3.png" width="300" height="683"/>

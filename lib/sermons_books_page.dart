@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
+import 'package:ip_semear_sermoes/semear_widgets.dart';
 import 'package:ip_semear_sermoes/sermons_page.dart';
 
 import 'main.dart';
@@ -30,7 +31,7 @@ class SermonsBooksPageController extends State<SermonsBooksPage> {
 
       return list;
     } catch (e) {
-      _hasError = true;
+      setState(() => _hasError = true);
       return null;
     }
   }
@@ -53,7 +54,7 @@ class SermonsBooksPageController extends State<SermonsBooksPage> {
   @override
   void initState() {
     super.initState();
-    _dio = Dio();
+    _dio = Dio(BaseOptions(connectTimeout: 15000, receiveTimeout: 15000));
     _hasError = false;
 
     _pageLoader = _getBookList();
@@ -74,10 +75,10 @@ class _SermonsBooksPageView
           centerTitle: true,
           title: Image.asset(
             'assets/logotipo.png',
-            height: kToolbarHeight * 0.5,
+            height: kToolbarHeight * 0.8,
           )),
       body: state._hasError
-          ? _buildError()
+          ? SemearErrorWidget(state._onRetryPressed)
           : FutureBuilder<dom.NodeList?>(
               future: state._pageLoader,
               builder: (context, snapshot) {
@@ -126,46 +127,9 @@ class _SermonsBooksPageView
                     },
                   );
                 } else {
-                  return _buildLoading();
+              return const SemearLoadingWidget();
                 }
               }),
     );
   }
-
-  Widget _buildLoading() => Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
-              'Carregando, isso pode demorar vários segundos',
-              style: TextStyle(fontSize: 16.0, color: semearGreen),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 32.0),
-            CircularProgressIndicator(),
-          ],
-        )),
-      );
-
-  Widget _buildError() => Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Oops, algo deu errado',
-                style: TextStyle(fontSize: 16.0, color: semearOrange),
-              ),
-              const SizedBox(height: 16.0),
-              TextButton(
-                onPressed: state._onRetryPressed,
-                child: const Text('Tentar Novamente'),
-              ),
-            ],
-          ),
-        ),
-      );
 }

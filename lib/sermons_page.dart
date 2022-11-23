@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:ip_semear_sermoes/main.dart';
+import 'package:ip_semear_sermoes/semear_widgets.dart';
 
 import 'audio_player_handler.dart';
 import 'models.dart';
@@ -142,7 +143,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
   @override
   void initState() {
     super.initState();
-    _dio = Dio();
+    _dio = Dio(BaseOptions(connectTimeout: 15000, receiveTimeout: 15000));
     _expandableControllers = [];
     _showPlayer = false;
     _isLoadingAudio = false;
@@ -165,7 +166,7 @@ class _SermonsSingleBookPageView
         title: Text(state.widget.bookName),
       ),
       body: state._hasError
-          ? _buildError()
+          ? SemearErrorWidget(state._onRetryPressed)
           : FutureBuilder<List<Sermon>>(
               future: state._pageLoader,
               builder: (context, snapshot) {
@@ -193,7 +194,7 @@ class _SermonsSingleBookPageView
                     },
                   );
                 } else {
-                  return _buildLoading();
+            return const SemearLoadingWidget();
                 }
               },
             ),
@@ -306,43 +307,6 @@ class _SermonsSingleBookPageView
   Widget _buildLoadingAudio() => const Padding(
         padding: EdgeInsets.all(16.0),
         child: Center(child: CircularProgressIndicator()),
-      );
-
-  Widget _buildLoading() => Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
-              'Carregando, isso pode demorar vários segundos',
-              style: TextStyle(fontSize: 16.0, color: semearGreen),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 32.0),
-            CircularProgressIndicator(),
-          ],
-        )),
-      );
-
-  Widget _buildError() => Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Oops, algo deu errado',
-                style: TextStyle(fontSize: 16.0, color: semearOrange),
-              ),
-              const SizedBox(height: 16.0),
-              TextButton(
-                onPressed: state._onRetryPressed,
-                child: const Text('Tentar Novamente'),
-              ),
-            ],
-          ),
-        ),
       );
 
   Widget _buildControls() {

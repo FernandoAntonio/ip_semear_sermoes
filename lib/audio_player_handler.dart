@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'main.dart';
@@ -67,19 +70,32 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     await stop();
   }
 
-  setSermon(Sermon sermon) {
+  Future<void> setSermon(Sermon sermon) async {
+    final imageFile = await _getImageFileFromAssets('logotipo.png');
+    final imageFilePath = 'file://${imageFile.path}';
+
     final MediaItem currentItem = MediaItem(
       id: sermon.mp3Url,
       album: sermon.series,
       title: sermon.title,
       artist: sermon.preacher,
-      artUri: Uri.parse('http://ipsemear.org/wp-content/uploads/logosite.png'),
+      artUri: Uri.parse(imageFilePath),
     );
 
     mediaItem.add(currentItem);
 
     // Load the player.
     _player.setAudioSource(AudioSource.uri(Uri.parse(currentItem.id)));
+  }
+
+  Future<File> _getImageFileFromAssets(String path) async {
+    final byteData = await rootBundle.load('assets/$path');
+
+    final file = File('${(await getTemporaryDirectory()).path}/$path');
+    await file.writeAsBytes(
+        byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+
+    return file;
   }
 
   @override

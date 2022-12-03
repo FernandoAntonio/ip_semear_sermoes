@@ -1,6 +1,7 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:dio/dio.dart';
 import 'package:expandable/expandable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
@@ -110,7 +111,14 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     setState(() => _showPlayer = false);
   }
 
+  void _onReplayXSecondsPressed() => audioHandler
+      .seek(audioHandler.progressNotifier.value.current - const Duration(seconds: 10));
+
+  void _onForwardXSecondsPressed() => audioHandler
+      .seek(audioHandler.progressNotifier.value.current + const Duration(seconds: 10));
+
   Future<void> _onExpandablePressed(int index) async {
+    _onStopPressed();
     setState(() {
       _expandableControllers[index].toggle();
       _showPlayer = false;
@@ -161,43 +169,49 @@ class _SermonsSingleBookPageView
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(state.widget.bookName),
-      ),
-      body: state._hasError
-          ? SemearErrorWidget(state._onRetryPressed)
-          : FutureBuilder<List<Sermon>>(
-              future: state._pageLoader,
-              builder: (context, snapshot) {
-                if (snapshot.data != null && snapshot.hasData) {
-                  snapshot.data?.forEach(
-                      (_) => state._expandableControllers.add(ExpandableController()));
+    return WillPopScope(
+      onWillPop: () async {
+        state._onStopPressed();
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(state.widget.bookName),
+        ),
+        body: state._hasError
+            ? SemearErrorWidget(state._onRetryPressed)
+            : FutureBuilder<List<Sermon>>(
+                future: state._pageLoader,
+                builder: (context, snapshot) {
+                  if (snapshot.data != null && snapshot.hasData) {
+                    snapshot.data?.forEach(
+                        (_) => state._expandableControllers.add(ExpandableController()));
 
-                  return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    padding: const EdgeInsets.all(4.0),
-                    itemBuilder: (context, index) {
-                      final sermon = snapshot.data![index];
-                      return Card(
-                        child: ExpandableNotifier(
-                          child: Expandable(
-                            controller: state._expandableControllers[index],
-                            theme: const ExpandableThemeData(
-                              iconColor: Colors.white,
+                    return ListView.builder(
+                      itemCount: snapshot.data!.length,
+                      padding: const EdgeInsets.all(4.0),
+                      itemBuilder: (context, index) {
+                        final sermon = snapshot.data![index];
+                        return Card(
+                          child: ExpandableNotifier(
+                            child: Expandable(
+                              controller: state._expandableControllers[index],
+                              theme: const ExpandableThemeData(
+                                iconColor: Colors.white,
+                              ),
+                              collapsed: _buildCollapsed(sermon, index),
+                              expanded: _buildExpanded(sermon, index),
                             ),
-                            collapsed: _buildCollapsed(sermon, index),
-                            expanded: _buildExpanded(sermon, index),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                } else {
-                  return const SemearLoadingWidget();
-                }
-              },
-            ),
+                        );
+                      },
+                    );
+                  } else {
+                    return const SemearLoadingWidget();
+                  }
+                },
+              ),
+      ),
     );
   }
 
@@ -322,25 +336,35 @@ class _SermonsSingleBookPageView
               children: [
                 IconButton(
                   color: semearGreen,
+                  icon: const Icon(Icons.replay_10),
+                  iconSize: 40.0,
+                  onPressed: state._onReplayXSecondsPressed,
+                ),
+                IconButton(
+                  color: semearGreen,
                   icon: Icon(
                     playing ? Icons.pause : Icons.play_arrow,
                   ),
                   iconSize: 40.0,
                   onPressed: playing ? state._onPausePressed : state._onPlayPressed,
                 ),
-                const SizedBox(width: 8.0),
                 IconButton(
                   color: semearGreen,
-                  icon: const Icon(
-                    Icons.stop,
-                  ),
+                  icon: const Icon(Icons.stop),
                   iconSize: 40.0,
                   onPressed: state._onStopPressed,
+                ),
+                IconButton(
+                  color: semearGreen,
+                  icon: const Icon(Icons.forward_10),
+                  iconSize: 40.0,
+                  onPressed: state._onForwardXSecondsPressed,
                 ),
               ],
             );
           },
         ),
+        const SizedBox(height: 16.0),
         // A seek bar.
         ValueListenableBuilder<ProgressBarState>(
           valueListenable: audioHandler.progressNotifier,

@@ -8,7 +8,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'utils/models.dart';
+import 'database/semear_database.dart';
 
 class ProgressBarState {
   ProgressBarState({
@@ -69,7 +69,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     await stop();
   }
 
-  Future<void> setSermon(SermonModel sermon) async {
+  Future<void> setSermon(Sermon sermon) async {
     final imageFile = await _getImageFileFromAssets('logotipo.png');
     final imageFilePath = 'file://${imageFile.path}';
 

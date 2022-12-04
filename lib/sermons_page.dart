@@ -3,12 +3,14 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:uuid/uuid.dart';
 
 import 'audio_player_handler.dart';
+import 'database/semear_database.dart';
 import 'dependency_injection.dart';
 import 'semear_widgets.dart';
 import 'utils/constants.dart';
-import 'utils/models.dart';
 import 'utils/widget_view.dart';
 
 class SermonsPage extends StatefulWidget {
@@ -26,17 +28,50 @@ class SermonsPage extends StatefulWidget {
 }
 
 class SermonsSingleBookPageController extends State<SermonsPage> {
-  late Future<List<SermonModel>> _pageLoader;
+  late Future<List<Sermon>?> _pageLoader;
   late Dio _dio;
   late List<ExpandableController> _expandableControllers;
   late bool _showPlayer;
   late bool _isLoadingAudio;
   late bool _hasError;
   late AudioPlayerHandler _audioHandler;
+  late SemearDatabase _database;
 
-  Future<List<SermonModel>> _getSermons() async {
+  Future<List<Sermon>?> _getSermonList(bool fromInternet) async {
     setState(() => _hasError = false);
 
+    try {
+      List<Sermon> sermonList = [];
+
+      if (!fromInternet) {
+        sermonList = await _database.getAllSermons();
+
+        if (sermonList.isEmpty) {
+          sermonList = await _getSermonsFromInternet();
+          if (sermonList.isNotEmpty) {
+            _storeSermons(sermonList);
+          } else {
+            throw Exception();
+          }
+        }
+      } else if (fromInternet) {
+        await _database.deleteAllSermons();
+        sermonList = await _getSermonsFromInternet();
+        if (sermonList.isNotEmpty) {
+          _storeSermons(sermonList);
+        } else {
+          throw Exception();
+        }
+      }
+
+      return sermonList;
+    } catch (e) {
+      setState(() => _hasError = true);
+      return null;
+    }
+  }
+
+  Future<List<Sermon>> _getSermonsFromInternet() async {
     //Get data from page
     late dom.Node bookSermons;
     try {
@@ -60,7 +95,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
 
     final nodes = bookSermons;
     final List<dom.Node> sermonNodes = [];
-    final List<SermonModel> sermons = [];
+    final List<Sermon> sermons = [];
 
     try {
       if (paginationSize > 1) {
@@ -84,7 +119,8 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
       }
 
       for (dom.Node node in sermonNodes) {
-        final sermon = SermonModel(
+        final sermon = Sermon(
+            id: const Uuid().v4(),
             date: node.nodes[1].nodes[0].text?.trim() ?? '',
             title: node.nodes[3].nodes[0].nodes[0].text?.trim() ?? '',
             preacher: node.nodes[6].text?.replaceAll('|', '').trim() ?? '',
@@ -99,6 +135,9 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
 
     return sermons.reversed.toList();
   }
+
+  Future<void> _storeSermons(List<Sermon> sermonList) async =>
+      await _database.storeAllSermons(sermonList);
 
   void _onPlayPressed() => _audioHandler.play();
 
@@ -149,7 +188,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     }
   }
 
-  Future<void> _onLoadAudioPressed(SermonModel sermon) async {
+  Future<void> _onLoadAudioPressed(Sermon sermon) async {
     setState(() {
       _showPlayer = false;
       _isLoadingAudio = true;
@@ -163,7 +202,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     });
   }
 
-  void _onRetryPressed() => _pageLoader = _getSermons();
+  Future<void> _onReloadData() => _pageLoader = _getSermonList(true);
 
   @override
   void initState() {
@@ -173,8 +212,9 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     _showPlayer = false;
     _isLoadingAudio = false;
     _audioHandler = getIt<AudioPlayerHandler>();
+    _database = getIt<SemearDatabase>();
 
-    _pageLoader = _getSermons();
+    _pageLoader = _getSermonList(false);
   }
 
   @override
@@ -197,25 +237,30 @@ class _SermonsSingleBookPageView
           title: Text(state.widget.bookName),
         ),
         body: state._hasError
-            ? SemearErrorWidget(state._onRetryPressed)
-            : FutureBuilder<List<SermonModel>>(
+            ? SemearErrorWidget(state._onReloadData)
+            : FutureBuilder<List<Sermon>?>(
                 future: state._pageLoader,
                 builder: (context, snapshot) {
                   if (snapshot.data != null && snapshot.hasData) {
                     snapshot.data?.forEach(
                         (_) => state._expandableControllers.add(ExpandableController()));
 
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      padding: const EdgeInsets.all(4.0),
-                      itemBuilder: (context, index) {
-                        final sermon = snapshot.data![index];
-                        return SemearSermonCard(
-                          controller: state._expandableControllers[index],
-                          collapsed: _buildCollapsed(sermon, index),
-                          expanded: _buildExpanded(sermon, index),
-                        );
-                      },
+                    return LiquidPullToRefresh(
+                      onRefresh: state._onReloadData,
+                      child: ListView.builder(
+                        itemCount: snapshot.data!.length,
+                        padding: const EdgeInsets.all(4.0),
+                        itemBuilder: (context, index) => Column(
+                          children: [
+                            SemearPullToRefresh(index: index),
+                            SemearSermonCard(
+                              controller: state._expandableControllers[index],
+                              collapsed: _buildCollapsed(snapshot.data![index], index),
+                              expanded: _buildExpanded(snapshot.data![index], index),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   } else {
                     return const SemearLoadingWidget();
@@ -226,7 +271,7 @@ class _SermonsSingleBookPageView
     );
   }
 
-  Widget _buildCollapsed(SermonModel sermon, int index) => InkWell(
+  Widget _buildCollapsed(Sermon sermon, int index) => InkWell(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -263,7 +308,7 @@ class _SermonsSingleBookPageView
         onTap: () async => state._onExpandablePressed(index),
       );
 
-  Widget _buildExpanded(SermonModel sermon, int index) => Column(
+  Widget _buildExpanded(Sermon sermon, int index) => Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           InkWell(

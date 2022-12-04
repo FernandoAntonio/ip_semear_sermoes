@@ -9,7 +9,6 @@ import 'database/semear_database.dart';
 import 'dependency_injection.dart';
 import 'semear_widgets.dart';
 import 'sermons_page.dart';
-import 'utils/constants.dart';
 import 'utils/widget_view.dart';
 
 class BooksPage extends StatefulWidget {
@@ -85,7 +84,7 @@ class SermonsBooksPageController extends State<BooksPage> {
   }
 
   Future<void> _storeBooks(List<Book> bookList) async =>
-      _database.storeAllBooks(bookList);
+      await _database.storeAllBooks(bookList);
 
   Future<void> _getSermonsFromBook(String url, String bookName) async {
     Navigator.of(context).push(
@@ -100,9 +99,7 @@ class SermonsBooksPageController extends State<BooksPage> {
 
   void _onBookPressed(String url, String bookName) => _getSermonsFromBook(url, bookName);
 
-  void _onRetryPressed() => _pageLoader = _getBookList(false);
-
-  Future<void> _onPullToRefresh() => _pageLoader = _getBookList(true);
+  Future<void> _onReloadData() => _pageLoader = _getBookList(true);
 
   @override
   void initState() {
@@ -131,37 +128,20 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
             height: kToolbarHeight * 0.8,
           )),
       body: state._hasError
-          ? SemearErrorWidget(state._onRetryPressed)
+          ? SemearErrorWidget(state._onReloadData)
           : FutureBuilder<List<Book>?>(
               future: state._pageLoader,
               builder: (context, snapshot) {
                 if (snapshot.data != null && snapshot.hasData) {
                   return LiquidPullToRefresh(
-                    onRefresh: state._onPullToRefresh,
+                    onRefresh: state._onReloadData,
                     child: ListView.builder(
                       padding: const EdgeInsets.all(4.0),
                       itemCount: snapshot.data!.length,
                       itemBuilder: (context, index) {
                         return Column(
                           children: [
-                            index == 0
-                                ? Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: const [
-                                        Text(
-                                          'Puxe para atualizar',
-                                          style: TextStyle(color: semearLightGrey),
-                                        ),
-                                        Icon(
-                                          Icons.arrow_drop_down,
-                                          color: semearLightGrey,
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : const SizedBox.shrink(),
+                            SemearPullToRefresh(index: index),
                             SemearBookCard(
                               onPressed: () => state._onBookPressed(
                                   snapshot.data![index].url, snapshot.data![index].title),

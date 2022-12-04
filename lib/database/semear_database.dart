@@ -38,11 +38,27 @@ class SemearDatabase extends _$SemearDatabase {
     }
   }
 
+  Future<void> storeAllSermons(List<Sermon> sermonList) async {
+    for (Sermon sermon in sermonList) {
+      await into(sermons).insert(SermonsCompanion.insert(
+        id: sermon.id,
+        title: sermon.title,
+        date: sermon.date,
+        mp3Url: sermon.mp3Url,
+        passage: sermon.passage,
+        series: sermon.series,
+        preacher: sermon.preacher,
+      ));
+    }
+  }
+
   //READ
   Future<List<Book>> getAllBooks() => select(books).get();
+  Future<List<Sermon>> getAllSermons() => select(sermons).get();
 
   //DELETE
   Future<void> deleteAllBooks() => delete(books).go();
+  Future<void> deleteAllSermons() => delete(sermons).go();
 }
 
 LazyDatabase _openConnection() {

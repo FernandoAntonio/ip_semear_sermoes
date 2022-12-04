@@ -86,18 +86,13 @@ class SermonsBooksPageController extends State<BooksPage> {
   Future<void> _storeBooks(List<Book> bookList) async =>
       await _database.storeAllBooks(bookList);
 
-  Future<void> _getSermonsFromBook(String url, String bookName) async {
+  Future<void> _getSermonsFromBook(Book book) async {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => SermonsPage(
-          bookSermonUrl: url,
-          bookName: bookName,
-        ),
-      ),
+      MaterialPageRoute(builder: (_) => SermonsPage(book: book)),
     );
   }
 
-  void _onBookPressed(String url, String bookName) => _getSermonsFromBook(url, bookName);
+  void _onBookPressed(Book book) => _getSermonsFromBook(book);
 
   Future<void> _onReloadData() => _pageLoader = _getBookList(true);
 
@@ -143,8 +138,8 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                           children: [
                             SemearPullToRefresh(index: index),
                             SemearBookCard(
-                              onPressed: () => state._onBookPressed(
-                                  snapshot.data![index].url, snapshot.data![index].title),
+                              onPressed: () =>
+                                  state._onBookPressed(snapshot.data![index]),
                               sermonBookName: snapshot.data![index].title,
                             ),
                           ],

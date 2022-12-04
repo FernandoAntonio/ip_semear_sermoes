@@ -207,6 +207,7 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
 
 class Sermon extends DataClass implements Insertable<Sermon> {
   final String id;
+  final String bookId;
   final String date;
   final String title;
   final String preacher;
@@ -215,6 +216,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
   final String mp3Url;
   const Sermon(
       {required this.id,
+      required this.bookId,
       required this.date,
       required this.title,
       required this.preacher,
@@ -225,6 +227,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    map['book_id'] = Variable<String>(bookId);
     map['date'] = Variable<String>(date);
     map['title'] = Variable<String>(title);
     map['preacher'] = Variable<String>(preacher);
@@ -237,6 +240,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
   SermonsCompanion toCompanion(bool nullToAbsent) {
     return SermonsCompanion(
       id: Value(id),
+      bookId: Value(bookId),
       date: Value(date),
       title: Value(title),
       preacher: Value(preacher),
@@ -251,6 +255,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Sermon(
       id: serializer.fromJson<String>(json['id']),
+      bookId: serializer.fromJson<String>(json['bookId']),
       date: serializer.fromJson<String>(json['date']),
       title: serializer.fromJson<String>(json['title']),
       preacher: serializer.fromJson<String>(json['preacher']),
@@ -264,6 +269,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'bookId': serializer.toJson<String>(bookId),
       'date': serializer.toJson<String>(date),
       'title': serializer.toJson<String>(title),
       'preacher': serializer.toJson<String>(preacher),
@@ -275,6 +281,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
 
   Sermon copyWith(
           {String? id,
+          String? bookId,
           String? date,
           String? title,
           String? preacher,
@@ -283,6 +290,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           String? mp3Url}) =>
       Sermon(
         id: id ?? this.id,
+        bookId: bookId ?? this.bookId,
         date: date ?? this.date,
         title: title ?? this.title,
         preacher: preacher ?? this.preacher,
@@ -294,6 +302,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
   String toString() {
     return (StringBuffer('Sermon(')
           ..write('id: $id, ')
+          ..write('bookId: $bookId, ')
           ..write('date: $date, ')
           ..write('title: $title, ')
           ..write('preacher: $preacher, ')
@@ -306,12 +315,13 @@ class Sermon extends DataClass implements Insertable<Sermon> {
 
   @override
   int get hashCode =>
-      Object.hash(id, date, title, preacher, series, passage, mp3Url);
+      Object.hash(id, bookId, date, title, preacher, series, passage, mp3Url);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Sermon &&
           other.id == this.id &&
+          other.bookId == this.bookId &&
           other.date == this.date &&
           other.title == this.title &&
           other.preacher == this.preacher &&
@@ -322,6 +332,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
 
 class SermonsCompanion extends UpdateCompanion<Sermon> {
   final Value<String> id;
+  final Value<String> bookId;
   final Value<String> date;
   final Value<String> title;
   final Value<String> preacher;
@@ -330,6 +341,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
   final Value<String> mp3Url;
   const SermonsCompanion({
     this.id = const Value.absent(),
+    this.bookId = const Value.absent(),
     this.date = const Value.absent(),
     this.title = const Value.absent(),
     this.preacher = const Value.absent(),
@@ -339,6 +351,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
   });
   SermonsCompanion.insert({
     required String id,
+    required String bookId,
     required String date,
     required String title,
     required String preacher,
@@ -346,6 +359,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     required String passage,
     required String mp3Url,
   })  : id = Value(id),
+        bookId = Value(bookId),
         date = Value(date),
         title = Value(title),
         preacher = Value(preacher),
@@ -354,6 +368,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
         mp3Url = Value(mp3Url);
   static Insertable<Sermon> custom({
     Expression<String>? id,
+    Expression<String>? bookId,
     Expression<String>? date,
     Expression<String>? title,
     Expression<String>? preacher,
@@ -363,6 +378,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (bookId != null) 'book_id': bookId,
       if (date != null) 'date': date,
       if (title != null) 'title': title,
       if (preacher != null) 'preacher': preacher,
@@ -374,6 +390,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
 
   SermonsCompanion copyWith(
       {Value<String>? id,
+      Value<String>? bookId,
       Value<String>? date,
       Value<String>? title,
       Value<String>? preacher,
@@ -382,6 +399,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       Value<String>? mp3Url}) {
     return SermonsCompanion(
       id: id ?? this.id,
+      bookId: bookId ?? this.bookId,
       date: date ?? this.date,
       title: title ?? this.title,
       preacher: preacher ?? this.preacher,
@@ -396,6 +414,9 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (bookId.present) {
+      map['book_id'] = Variable<String>(bookId.value);
     }
     if (date.present) {
       map['date'] = Variable<String>(date.value);
@@ -422,6 +443,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
   String toString() {
     return (StringBuffer('SermonsCompanion(')
           ..write('id: $id, ')
+          ..write('bookId: $bookId, ')
           ..write('date: $date, ')
           ..write('title: $title, ')
           ..write('preacher: $preacher, ')
@@ -442,6 +464,11 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  @override
+  late final GeneratedColumn<String> bookId = GeneratedColumn<String>(
+      'book_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
@@ -477,7 +504,7 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
       type: DriftSqlType.string, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, date, title, preacher, series, passage, mp3Url];
+      [id, bookId, date, title, preacher, series, passage, mp3Url];
   @override
   String get aliasedName => _alias ?? 'sermons';
   @override
@@ -491,6 +518,12 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('book_id')) {
+      context.handle(_bookIdMeta,
+          bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta));
+    } else if (isInserting) {
+      context.missing(_bookIdMeta);
     }
     if (data.containsKey('date')) {
       context.handle(
@@ -539,6 +572,8 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
     return Sermon(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      bookId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}book_id'])!,
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}date'])!,
       title: attachedDatabase.typeMapping

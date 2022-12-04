@@ -7,8 +7,9 @@ import 'package:ip_semear_sermoes/main.dart';
 import 'package:ip_semear_sermoes/semear_widgets.dart';
 
 import 'audio_player_handler.dart';
-import 'models.dart';
-import 'widget_view.dart';
+import 'utils/constants.dart';
+import 'utils/models.dart';
+import 'utils/widget_view.dart';
 
 class SermonsPage extends StatefulWidget {
   final String bookSermonUrl;
@@ -163,13 +164,6 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
 
   void _onRetryPressed() => _pageLoader = _getSermons();
 
-  String _formatDuration(Duration duration) {
-    String hours = duration.inHours.toString().padLeft(0, '2');
-    String minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '');
-    String seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return "${int.parse(hours) > 0 ? '$hours:' : ''}$minutes:$seconds";
-  }
-
   @override
   void initState() {
     super.initState();
@@ -214,17 +208,10 @@ class _SermonsSingleBookPageView
                       padding: const EdgeInsets.all(4.0),
                       itemBuilder: (context, index) {
                         final sermon = snapshot.data![index];
-                        return Card(
-                          child: ExpandableNotifier(
-                            child: Expandable(
-                              controller: state._expandableControllers[index],
-                              theme: const ExpandableThemeData(
-                                iconColor: Colors.white,
-                              ),
-                              collapsed: _buildCollapsed(sermon, index),
-                              expanded: _buildExpanded(sermon, index),
-                            ),
-                          ),
+                        return SemearSermonCard(
+                          controller: state._expandableControllers[index],
+                          collapsed: _buildCollapsed(sermon, index),
+                          expanded: _buildExpanded(sermon, index),
                         );
                       },
                     );
@@ -259,14 +246,14 @@ class _SermonsSingleBookPageView
                     const SizedBox(height: 8.0),
                     Text(
                       sermon.passage,
-                      style: const TextStyle(color: Colors.grey),
+                      style: const TextStyle(color: semearLightGrey),
                     ),
                   ],
                 ),
               ),
               const Icon(
                 Icons.arrow_drop_down,
-                color: Colors.grey,
+                color: semearLightGrey,
               ),
             ],
           ),
@@ -301,26 +288,26 @@ class _SermonsSingleBookPageView
                             const SizedBox(height: 8.0),
                             Text(
                               sermon.passage,
-                              style: const TextStyle(color: Colors.grey),
+                              style: const TextStyle(color: semearLightGrey),
                             ),
                           ],
                         ),
                       ),
                       const Icon(
                         Icons.arrow_drop_up,
-                        color: Colors.grey,
+                        color: semearLightGrey,
                       ),
                     ],
                   ),
                   const SizedBox(height: 8.0),
                   Text(
                     'Pregador: ${sermon.preacher}',
-                    style: const TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: semearLightGrey),
                   ),
                   const SizedBox(height: 8.0),
                   Text(
                     sermon.date,
-                    style: const TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: semearLightGrey),
                   ),
                 ],
               ),
@@ -335,7 +322,8 @@ class _SermonsSingleBookPageView
                     ? _buildControls()
                     : TextButton(
                         onPressed: () => state._onLoadAudioPressed(sermon),
-                        child: const Text('Carregar Áudio')),
+                        child: const Text('Carregar Áudio'),
+                      ),
           ),
         ],
       );
@@ -351,31 +339,13 @@ class _SermonsSingleBookPageView
         ValueListenableBuilder<ProgressBarState>(
           valueListenable: audioHandler.progressNotifier,
           builder: (_, value, __) => value.total != Duration.zero
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      state._formatDuration(value.current),
-                      style: const TextStyle(color: Colors.grey, fontSize: 12.0),
-                    ),
-                    Expanded(
-                      child: Slider(
-                        label: state._formatDuration(value.current),
-                        divisions: value.total.inSeconds,
-                        max: value.total.inSeconds.toDouble(),
-                        value: value.current.inSeconds.toDouble(),
-                        onChanged: state._onSeekChanged,
-                      ),
-                    ),
-                    Text(
-                      state._formatDuration(value.total),
-                      style: const TextStyle(color: Colors.grey, fontSize: 12.0),
-                    ),
-                  ],
+              ? SemearSlider(
+                  progressBarState: value,
+                  onSeekChanged: state._onSeekChanged,
                 )
               : const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: LinearProgressIndicator(backgroundColor: Colors.grey),
+                  padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 4.0),
+                  child: LinearProgressIndicator(backgroundColor: semearLightGrey),
                 ),
         ),
         StreamBuilder<bool>(
@@ -385,10 +355,8 @@ class _SermonsSingleBookPageView
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  color: Colors.grey,
-                  icon: const Icon(Icons.replay_10),
-                  iconSize: 40.0,
+                SemearIcon(
+                  iconData: Icons.replay_10,
                   onPressed: state._onReplayXSecondsPressed,
                 ),
                 const SizedBox(width: 16.0),
@@ -397,37 +365,22 @@ class _SermonsSingleBookPageView
                     height: 60.0,
                     width: 60.0,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        transform: const GradientRotation(45.0),
-                        colors: [
-                          semearGreen,
-                          semearGreen.withOpacity(0.3),
-                        ],
-                        stops: const [0.5, 1.0],
-                      ),
+                      gradient: semearGreenGradient,
                       borderRadius: BorderRadius.circular(100.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          offset: const Offset(-1.0, 1.0),
-                          blurRadius: 1.5,
-                        ),
-                      ],
+                      boxShadow: boxShadowsLightGrey,
                     ),
                     child: Icon(
                       playing ? Icons.pause : Icons.play_arrow,
                       size: 30.0,
-                      color: semearGrey,
+                      color: semearDarkGrey,
                     ),
                   ),
                   iconSize: 60.0,
                   onPressed: playing ? state._onPausePressed : state._onPlayPressed,
                 ),
                 const SizedBox(width: 16.0),
-                IconButton(
-                  color: Colors.grey,
-                  icon: const Icon(Icons.forward_10),
-                  iconSize: 40.0,
+                SemearIcon(
+                  iconData: Icons.forward_10,
                   onPressed: state._onForwardXSecondsPressed,
                 ),
               ],

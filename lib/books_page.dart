@@ -5,17 +5,16 @@ import 'package:html/parser.dart';
 import 'package:ip_semear_sermoes/semear_widgets.dart';
 import 'package:ip_semear_sermoes/sermons_page.dart';
 
-import 'main.dart';
-import 'widget_view.dart';
+import 'utils/widget_view.dart';
 
-class SermonsBooksPage extends StatefulWidget {
-  const SermonsBooksPage({Key? key}) : super(key: key);
+class BooksPage extends StatefulWidget {
+  const BooksPage({Key? key}) : super(key: key);
 
   @override
   SermonsBooksPageController createState() => SermonsBooksPageController();
 }
 
-class SermonsBooksPageController extends State<SermonsBooksPage> {
+class SermonsBooksPageController extends State<BooksPage> {
   late Future<dom.NodeList?> _pageLoader;
   late bool _hasError;
   late Dio _dio;
@@ -64,8 +63,7 @@ class SermonsBooksPageController extends State<SermonsBooksPage> {
   Widget build(BuildContext context) => _SermonsBooksPageView(this);
 }
 
-class _SermonsBooksPageView
-    extends WidgetView<SermonsBooksPage, SermonsBooksPageController> {
+class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageController> {
   const _SermonsBooksPageView(SermonsBooksPageController state) : super(state);
 
   @override
@@ -91,38 +89,10 @@ class _SermonsBooksPageView
                       final sermonBookUrl = data.attributes.values.first;
                       final sermonBookName = data.text ?? '';
 
-                      return InkWell(
-                        onTap: () => state._onBookPressed(sermonBookUrl, sermonBookName),
-                        child: Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.book_outlined,
-                                      color: semearOrange.withOpacity(0.5),
-                                    ),
-                                    const SizedBox(width: 16.0),
-                                    Text(
-                                      sermonBookName,
-                                      style: const TextStyle(
-                                          fontSize: 16.0,
-                                          color: semearGreen,
-                                          fontWeight: FontWeight.w900),
-                                    ),
-                                  ],
-                                ),
-                                Icon(
-                                  Icons.chevron_right,
-                                  color: semearOrange.withOpacity(0.5),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      return SemearBookCard(
+                        onPressed: () =>
+                            state._onBookPressed(sermonBookUrl, sermonBookName),
+                        sermonBookName: sermonBookName,
                       );
                     },
                   );

@@ -313,7 +313,7 @@ class _SermonsSingleBookPageView
             onTap: () => state._onExpandablePressed(index),
           ),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
             child: state._isLoadingAudio
                 ? _buildLoadingAudio()
                 : state._showPlayer
@@ -333,45 +333,6 @@ class _SermonsSingleBookPageView
   Widget _buildControls() {
     return Column(
       children: [
-        // Play/pause/stop buttons.
-        StreamBuilder<bool>(
-          stream: audioHandler.playbackState.map((state) => state.playing).distinct(),
-          builder: (context, snapshot) {
-            final playing = snapshot.data ?? false;
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  color: semearGreen,
-                  icon: const Icon(Icons.replay_10),
-                  iconSize: 40.0,
-                  onPressed: state._onReplayXSecondsPressed,
-                ),
-                IconButton(
-                  color: semearGreen,
-                  icon: Icon(
-                    playing ? Icons.pause : Icons.play_arrow,
-                  ),
-                  iconSize: 40.0,
-                  onPressed: playing ? state._onPausePressed : state._onPlayPressed,
-                ),
-                IconButton(
-                  color: semearGreen,
-                  icon: const Icon(Icons.stop),
-                  iconSize: 40.0,
-                  onPressed: state._onStopPressed,
-                ),
-                IconButton(
-                  color: semearGreen,
-                  icon: const Icon(Icons.forward_10),
-                  iconSize: 40.0,
-                  onPressed: state._onForwardXSecondsPressed,
-                ),
-              ],
-            );
-          },
-        ),
-        const SizedBox(height: 24.0),
         ValueListenableBuilder<ProgressBarState>(
           valueListenable: audioHandler.progressNotifier,
           builder: (_, value, __) => value.total != Duration.zero
@@ -397,7 +358,48 @@ class _SermonsSingleBookPageView
                     ),
                   ],
                 )
-              : const CircularProgressIndicator(),
+              : const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: LinearProgressIndicator(backgroundColor: Colors.grey),
+                ),
+        ),
+        StreamBuilder<bool>(
+          stream: audioHandler.playbackState.map((state) => state.playing).distinct(),
+          builder: (context, snapshot) {
+            final playing = snapshot.data ?? false;
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  color: Colors.grey,
+                  icon: const Icon(Icons.replay_10),
+                  iconSize: 40.0,
+                  onPressed: state._onReplayXSecondsPressed,
+                ),
+                const SizedBox(width: 16.0),
+                IconButton(
+                  icon: CircleAvatar(
+                    maxRadius: 60.0,
+                    backgroundColor: semearGreen,
+                    foregroundColor: semearGrey,
+                    child: Icon(
+                      playing ? Icons.pause : Icons.play_arrow,
+                      size: 30.0,
+                    ),
+                  ),
+                  iconSize: 60.0,
+                  onPressed: playing ? state._onPausePressed : state._onPlayPressed,
+                ),
+                const SizedBox(width: 16.0),
+                IconButton(
+                  color: Colors.grey,
+                  icon: const Icon(Icons.forward_10),
+                  iconSize: 40.0,
+                  onPressed: state._onForwardXSecondsPressed,
+                ),
+              ],
+            );
+          },
         ),
       ],
     );

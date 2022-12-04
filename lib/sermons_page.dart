@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:expandable/expandable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
@@ -111,11 +110,27 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     setState(() => _showPlayer = false);
   }
 
-  void _onReplayXSecondsPressed() => audioHandler
-      .seek(audioHandler.progressNotifier.value.current - const Duration(seconds: 10));
+  void _onReplayXSecondsPressed() {
+    final finalDuration =
+        audioHandler.progressNotifier.value.current - const Duration(seconds: 10);
 
-  void _onForwardXSecondsPressed() => audioHandler
-      .seek(audioHandler.progressNotifier.value.current + const Duration(seconds: 10));
+    if (finalDuration > Duration.zero) {
+      audioHandler.seek(finalDuration);
+    } else {
+      audioHandler.seek(Duration.zero);
+    }
+  }
+
+  void _onForwardXSecondsPressed() {
+    final finalDuration =
+        audioHandler.progressNotifier.value.current + const Duration(seconds: 10);
+
+    if (finalDuration < audioHandler.progressNotifier.value.total) {
+      audioHandler.seek(finalDuration);
+    } else {
+      audioHandler.seek(audioHandler.progressNotifier.value.total);
+    }
+  }
 
   Future<void> _onExpandablePressed(int index) async {
     _onStopPressed();
@@ -378,13 +393,31 @@ class _SermonsSingleBookPageView
                 ),
                 const SizedBox(width: 16.0),
                 IconButton(
-                  icon: CircleAvatar(
-                    maxRadius: 60.0,
-                    backgroundColor: semearGreen,
-                    foregroundColor: semearGrey,
+                  icon: Container(
+                    height: 60.0,
+                    width: 60.0,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        transform: const GradientRotation(45.0),
+                        colors: [
+                          semearGreen,
+                          semearGreen.withOpacity(0.3),
+                        ],
+                        stops: const [0.5, 1.0],
+                      ),
+                      borderRadius: BorderRadius.circular(100.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          offset: const Offset(-1.0, 1.0),
+                          blurRadius: 1.5,
+                        ),
+                      ],
+                    ),
                     child: Icon(
                       playing ? Icons.pause : Icons.play_arrow,
                       size: 30.0,
+                      color: semearGrey,
                     ),
                   ),
                   iconSize: 60.0,

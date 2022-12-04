@@ -14,14 +14,9 @@ import 'utils/constants.dart';
 import 'utils/widget_view.dart';
 
 class SermonsPage extends StatefulWidget {
-  final String bookSermonUrl;
-  final String bookName;
+  final Book book;
 
-  const SermonsPage({
-    required this.bookSermonUrl,
-    required this.bookName,
-    Key? key,
-  }) : super(key: key);
+  const SermonsPage({required this.book, Key? key}) : super(key: key);
 
   @override
   SermonsSingleBookPageController createState() => SermonsSingleBookPageController();
@@ -44,9 +39,9 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
       List<Sermon> sermonList = [];
 
       if (!fromInternet) {
-        sermonList = await _database.getAllSermons();
+        sermonList = await _database.getAllSermonsFromBookId(widget.book.id);
 
-        if (sermonList.isEmpty) {
+        if (sermonList.isEmpty || sermonList.first.bookId != widget.book.id) {
           sermonList = await _getSermonsFromInternet();
           if (sermonList.isNotEmpty) {
             _storeSermons(sermonList);
@@ -55,7 +50,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
           }
         }
       } else if (fromInternet) {
-        await _database.deleteAllSermons();
+        await _database.deleteAllSermonsWithBookId(widget.book.id);
         sermonList = await _getSermonsFromInternet();
         if (sermonList.isNotEmpty) {
           _storeSermons(sermonList);
@@ -75,7 +70,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     //Get data from page
     late dom.Node bookSermons;
     try {
-      final response = await _dio.get(widget.bookSermonUrl);
+      final response = await _dio.get(widget.book.url);
       final parsed = parse(response.data);
       bookSermons =
           parsed.nodes[1].nodes[2].nodes[3].nodes[11].nodes[3].nodes[3].nodes[5].nodes[3];
@@ -100,7 +95,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     try {
       if (paginationSize > 1) {
         for (var index = 2; index <= paginationSize; index++) {
-          final response = await _dio.get('${widget.bookSermonUrl}page/$index');
+          final response = await _dio.get('${widget.book.url}page/$index');
           final parsed = parse(response.data);
           final list = parsed
               .nodes[1].nodes[2].nodes[3].nodes[11].nodes[3].nodes[3].nodes[5].nodes[3];
@@ -121,6 +116,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
       for (dom.Node node in sermonNodes) {
         final sermon = Sermon(
             id: const Uuid().v4(),
+            bookId: widget.book.id,
             date: node.nodes[1].nodes[0].text?.trim() ?? '',
             title: node.nodes[3].nodes[0].nodes[0].text?.trim() ?? '',
             preacher: node.nodes[6].text?.replaceAll('|', '').trim() ?? '',
@@ -234,7 +230,7 @@ class _SermonsSingleBookPageView
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(state.widget.bookName),
+          title: Text(state.widget.book.title),
         ),
         body: state._hasError
             ? SemearErrorWidget(state._onReloadData)

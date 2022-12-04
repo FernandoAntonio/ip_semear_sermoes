@@ -15,6 +15,7 @@ class Books extends Table {
 
 class Sermons extends Table {
   TextColumn get id => text()();
+  TextColumn get bookId => text()();
   TextColumn get date => text()();
   TextColumn get title => text()();
   TextColumn get preacher => text()();
@@ -42,6 +43,7 @@ class SemearDatabase extends _$SemearDatabase {
     for (Sermon sermon in sermonList) {
       await into(sermons).insert(SermonsCompanion.insert(
         id: sermon.id,
+        bookId: sermon.bookId,
         title: sermon.title,
         date: sermon.date,
         mp3Url: sermon.mp3Url,
@@ -54,11 +56,13 @@ class SemearDatabase extends _$SemearDatabase {
 
   //READ
   Future<List<Book>> getAllBooks() => select(books).get();
-  Future<List<Sermon>> getAllSermons() => select(sermons).get();
+  Future<List<Sermon>> getAllSermonsFromBookId(String bookId) =>
+      (select(sermons)..where((sermon) => sermon.bookId.equals(bookId))).get();
 
   //DELETE
   Future<void> deleteAllBooks() => delete(books).go();
-  Future<void> deleteAllSermons() => delete(sermons).go();
+  Future<void> deleteAllSermonsWithBookId(String bookId) =>
+      (delete(sermons)..where((sermon) => sermon.bookId.equals(bookId))).go();
 }
 
 LazyDatabase _openConnection() {

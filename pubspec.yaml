@@ -12,17 +12,22 @@ dependencies:
 
   audio_service: ^0.18.7
   dio: ^4.0.6
+  drift: ^2.3.0
   expandable: ^5.0.1
   just_audio: ^0.9.30
   html: ^0.15.1
+  path: ^1.8.2
   path_provider: ^2.0.11
   rxdart: ^0.27.7
-
+  sqlite3_flutter_libs: ^0.5.12
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.1
+  drift_dev: ^2.3.2
+  build_runner: ^2.3.2
 
 flutter:
   uses-material-design: true

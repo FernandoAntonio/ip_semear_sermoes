@@ -111,6 +111,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   Future<void> stop() async {
     await _player.stop();
     await _player.seek(const Duration());
+    progressNotifier.value = ProgressBarState(
+      current: Duration.zero,
+      buffered: Duration.zero,
+      total: Duration.zero,
+    );
   }
 
   PlaybackState _transformEvent(PlaybackEvent event) {

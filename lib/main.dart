@@ -31,7 +31,9 @@ class MyApp extends StatelessWidget {
         sliderTheme: SliderThemeData(
           thumbColor: semearGreen,
           activeTrackColor: semearGreen,
-          inactiveTrackColor: semearGreen.withOpacity(0.2),
+          inactiveTrackColor: semearGreen.withOpacity(0.1),
+          valueIndicatorTextStyle: const TextStyle(color: semearGrey),
+          valueIndicatorColor: semearGreen,
         ),
         appBarTheme:
             const AppBarTheme(foregroundColor: semearGreen, backgroundColor: semearGrey),

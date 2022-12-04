@@ -114,7 +114,7 @@ class SemearBookCard extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.book_outlined,
-                    color: semearOrangeWithOpacity30,
+                    color: semearGreenWithOpacity30,
                   ),
                   const SizedBox(width: 16.0),
                   Text(

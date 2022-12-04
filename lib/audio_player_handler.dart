@@ -70,7 +70,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     await stop();
   }
 
-  Future<void> setSermon(Sermon sermon) async {
+  Future<void> setSermon(SermonModel sermon) async {
     final imageFile = await _getImageFileFromAssets('logotipo.png');
     final imageFilePath = 'file://${imageFile.path}';
 

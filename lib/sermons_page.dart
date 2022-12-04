@@ -26,14 +26,14 @@ class SermonsPage extends StatefulWidget {
 }
 
 class SermonsSingleBookPageController extends State<SermonsPage> {
-  late Future<List<Sermon>> _pageLoader;
+  late Future<List<SermonModel>> _pageLoader;
   late Dio _dio;
   late List<ExpandableController> _expandableControllers;
   late bool _showPlayer;
   late bool _isLoadingAudio;
   late bool _hasError;
 
-  Future<List<Sermon>> _getSermons() async {
+  Future<List<SermonModel>> _getSermons() async {
     setState(() => _hasError = false);
 
     //Get data from page
@@ -59,7 +59,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
 
     final nodes = bookSermons;
     final List<dom.Node> sermonNodes = [];
-    final List<Sermon> sermons = [];
+    final List<SermonModel> sermons = [];
 
     try {
       if (paginationSize > 1) {
@@ -83,7 +83,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
       }
 
       for (dom.Node node in sermonNodes) {
-        final sermon = Sermon(
+        final sermon = SermonModel(
             date: node.nodes[1].nodes[0].text?.trim() ?? '',
             title: node.nodes[3].nodes[0].nodes[0].text?.trim() ?? '',
             preacher: node.nodes[6].text?.replaceAll('|', '').trim() ?? '',
@@ -148,7 +148,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     }
   }
 
-  Future<void> _onLoadAudioPressed(Sermon sermon) async {
+  Future<void> _onLoadAudioPressed(SermonModel sermon) async {
     setState(() {
       _showPlayer = false;
       _isLoadingAudio = true;
@@ -196,7 +196,7 @@ class _SermonsSingleBookPageView
         ),
         body: state._hasError
             ? SemearErrorWidget(state._onRetryPressed)
-            : FutureBuilder<List<Sermon>>(
+            : FutureBuilder<List<SermonModel>>(
                 future: state._pageLoader,
                 builder: (context, snapshot) {
                   if (snapshot.data != null && snapshot.hasData) {
@@ -224,7 +224,7 @@ class _SermonsSingleBookPageView
     );
   }
 
-  Widget _buildCollapsed(Sermon sermon, int index) => InkWell(
+  Widget _buildCollapsed(SermonModel sermon, int index) => InkWell(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -261,7 +261,7 @@ class _SermonsSingleBookPageView
         onTap: () async => state._onExpandablePressed(index),
       );
 
-  Widget _buildExpanded(Sermon sermon, int index) => Column(
+  Widget _buildExpanded(SermonModel sermon, int index) => Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           InkWell(

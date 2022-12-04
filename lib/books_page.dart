@@ -2,9 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
+import 'package:ip_semear_sermoes/database/semear_database.dart';
 import 'package:ip_semear_sermoes/semear_widgets.dart';
 import 'package:ip_semear_sermoes/sermons_page.dart';
+import 'package:uuid/uuid.dart';
 
+import 'main.dart';
 import 'utils/widget_view.dart';
 
 class BooksPage extends StatefulWidget {
@@ -15,25 +18,57 @@ class BooksPage extends StatefulWidget {
 }
 
 class SermonsBooksPageController extends State<BooksPage> {
-  late Future<dom.NodeList?> _pageLoader;
+  late Future<List<Book>?> _pageLoader;
   late bool _hasError;
   late Dio _dio;
 
-  Future<dom.NodeList?> _getBookList() async {
+  Future<List<Book>?> _getBookList() async {
     setState(() => _hasError = false);
 
     try {
-      final response = await _dio.get('http://ipsemear.org/sermoes-audio/');
-      final parsed = parse(response.data);
-      final list = parsed.nodes[1].nodes[2].nodes[3].nodes[11].nodes[3].nodes[3].nodes[5]
-          .nodes[1].nodes[7].nodes;
+      List<Book> bookList = [];
+      bookList = await database.getAllBooks();
 
-      return list;
+      if (bookList.isEmpty) {
+        bookList = await _getBooksFromInternet();
+        if (bookList.isNotEmpty) {
+          _storeBooks(bookList);
+        }
+      }
+
+      return bookList;
     } catch (e) {
       setState(() => _hasError = true);
       return null;
     }
   }
+
+  Future<List<Book>> _getBooksFromInternet() async {
+    try {
+      final response = await _dio.get('http://ipsemear.org/sermoes-audio/');
+      final parsed = parse(response.data);
+      final list = parsed.nodes[1].nodes[2].nodes[3].nodes[11].nodes[3].nodes[3].nodes[5]
+          .nodes[1].nodes[7].nodes;
+      List<Book> bookList = [];
+
+      for (dom.Node node in list) {
+        final data = node.nodes.first;
+        final book = Book(
+          id: const Uuid().v4(),
+          title: data.text ?? '',
+          url: data.attributes.values.first,
+        );
+        bookList.add(book);
+      }
+
+      return bookList;
+    } catch (e) {
+      setState(() => _hasError = true);
+      return [];
+    }
+  }
+
+  Future<void> _storeBooks(List<Book> bookList) async => database.storeAllBooks(bookList);
 
   Future<void> _getSermonsFromBook(String url, String bookName) async {
     Navigator.of(context).push(
@@ -77,7 +112,7 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
           )),
       body: state._hasError
           ? SemearErrorWidget(state._onRetryPressed)
-          : FutureBuilder<dom.NodeList?>(
+          : FutureBuilder<List<Book>?>(
               future: state._pageLoader,
               builder: (context, snapshot) {
                 if (snapshot.data != null && snapshot.hasData) {
@@ -85,21 +120,18 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                     padding: const EdgeInsets.all(4.0),
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      final data = snapshot.data![index].nodes.first;
-                      final sermonBookUrl = data.attributes.values.first;
-                      final sermonBookName = data.text ?? '';
-
                       return SemearBookCard(
-                        onPressed: () =>
-                            state._onBookPressed(sermonBookUrl, sermonBookName),
-                        sermonBookName: sermonBookName,
+                        onPressed: () => state._onBookPressed(
+                            snapshot.data![index].url, snapshot.data![index].title),
+                        sermonBookName: snapshot.data![index].title,
                       );
                     },
                   );
                 } else {
                   return const SemearLoadingWidget();
                 }
-              }),
+              },
+            ),
     );
   }
 }

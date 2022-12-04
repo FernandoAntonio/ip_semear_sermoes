@@ -1,4 +1,4 @@
-class Sermon {
+class SermonModel {
   final String date;
   final String title;
   final String preacher;
@@ -6,7 +6,7 @@ class Sermon {
   final String passage;
   final String mp3Url;
 
-  const Sermon({
+  const SermonModel({
     required this.date,
     required this.title,
     required this.preacher,

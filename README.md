@@ -11,3 +11,14 @@ Também conta com reprodução em segundo plano e controle de pausa e parada na 
 # Screenshots
 
 <img src="screenshots/screenshot1.png" width="300" height="683"/> <img src="screenshots/screenshot2.png" width="300" height="683"/> <img src="screenshots/screenshot3.png" width="300" height="683"/> <img src="screenshots/screenshot4.png" width="300" height="683"/>
+
+# Roadmap
+
+1 - ☑ Revamp the UI
+2 - ☐ Store books in Drift Database 
+3 - ☐ Pull to refresh data and save into Database
+4 - ☐ Add dependency injection
+5 - ☐ Store sermons in Drift Database
+6 - ☐ Download sermons mp3
+7 - ☐ Save progress
+8 - ☐ Store user preferences (e.g. replay or forward 5, 10 or 30 seconds)

@@ -1,4 +1,3 @@
-import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:dio/dio.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/foundation.dart';
@@ -104,7 +103,8 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
 
   void _onPausePressed() => audioHandler.pause();
 
-  void _onSeekChanged(Duration newDuration) => audioHandler.seek(newDuration);
+  void _onSeekChanged(double newSecondsValue) =>
+      audioHandler.seek(Duration(seconds: newSecondsValue.toInt()));
 
   void _onStopPressed() {
     audioHandler.stop();
@@ -147,6 +147,13 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
   }
 
   void _onRetryPressed() => _pageLoader = _getSermons();
+
+  String _formatDuration(Duration duration) {
+    String hours = duration.inHours.toString().padLeft(0, '2');
+    String minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '');
+    String seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return "${int.parse(hours) > 0 ? '$hours:' : ''}$minutes:$seconds";
+  }
 
   @override
   void initState() {
@@ -364,27 +371,33 @@ class _SermonsSingleBookPageView
             );
           },
         ),
-        const SizedBox(height: 16.0),
-        // A seek bar.
+        const SizedBox(height: 24.0),
         ValueListenableBuilder<ProgressBarState>(
           valueListenable: audioHandler.progressNotifier,
-          builder: (_, value, __) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: ProgressBar(
-                thumbColor: semearGreen,
-                baseBarColor: semearGreen.withOpacity(0.1),
-                bufferedBarColor: semearGreen.withOpacity(0.3),
-                progressBarColor: semearGreen,
-                timeLabelTextStyle: const TextStyle(color: Colors.grey, fontSize: 12.0),
-                timeLabelPadding: 4.0,
-                progress: value.current,
-                buffered: value.buffered,
-                total: value.total,
-                onSeek: state._onSeekChanged,
-              ),
-            );
-          },
+          builder: (_, value, __) => value.total != Duration.zero
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      state._formatDuration(value.current),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12.0),
+                    ),
+                    Expanded(
+                      child: Slider(
+                        label: state._formatDuration(value.current),
+                        divisions: value.total.inSeconds,
+                        max: value.total.inSeconds.toDouble(),
+                        value: value.current.inSeconds.toDouble(),
+                        onChanged: state._onSeekChanged,
+                      ),
+                    ),
+                    Text(
+                      state._formatDuration(value.total),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12.0),
+                    ),
+                  ],
+                )
+              : const CircularProgressIndicator(),
         ),
       ],
     );

@@ -2,14 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
-import 'package:ip_semear_sermoes/database/semear_database.dart';
-import 'package:ip_semear_sermoes/semear_widgets.dart';
-import 'package:ip_semear_sermoes/sermons_page.dart';
-import 'package:ip_semear_sermoes/utils/constants.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:uuid/uuid.dart';
 
-import 'main.dart';
+import 'database/semear_database.dart';
+import 'dependency_injection.dart';
+import 'semear_widgets.dart';
+import 'sermons_page.dart';
+import 'utils/constants.dart';
 import 'utils/widget_view.dart';
 
 class BooksPage extends StatefulWidget {
@@ -23,6 +23,7 @@ class SermonsBooksPageController extends State<BooksPage> {
   late Future<List<Book>?> _pageLoader;
   late bool _hasError;
   late Dio _dio;
+  late SemearDatabase _database;
 
   Future<List<Book>?> _getBookList(bool fromInternet) async {
     setState(() => _hasError = false);
@@ -31,7 +32,7 @@ class SermonsBooksPageController extends State<BooksPage> {
       List<Book> bookList = [];
 
       if (!fromInternet) {
-        bookList = await database.getAllBooks();
+        bookList = await _database.getAllBooks();
 
         if (bookList.isEmpty) {
           bookList = await _getBooksFromInternet();
@@ -42,7 +43,7 @@ class SermonsBooksPageController extends State<BooksPage> {
           }
         }
       } else if (fromInternet) {
-        await database.deleteAllBooks();
+        await _database.deleteAllBooks();
         bookList = await _getBooksFromInternet();
         if (bookList.isNotEmpty) {
           _storeBooks(bookList);
@@ -83,7 +84,8 @@ class SermonsBooksPageController extends State<BooksPage> {
     }
   }
 
-  Future<void> _storeBooks(List<Book> bookList) async => database.storeAllBooks(bookList);
+  Future<void> _storeBooks(List<Book> bookList) async =>
+      _database.storeAllBooks(bookList);
 
   Future<void> _getSermonsFromBook(String url, String bookName) async {
     Navigator.of(context).push(
@@ -107,6 +109,7 @@ class SermonsBooksPageController extends State<BooksPage> {
     super.initState();
     _dio = Dio(BaseOptions(connectTimeout: 15000, receiveTimeout: 15000));
     _hasError = false;
+    _database = getIt<SemearDatabase>();
 
     _pageLoader = _getBookList(false);
   }

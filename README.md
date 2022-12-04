@@ -16,8 +16,8 @@ Também conta com reprodução em segundo plano e controle de pausa e parada na 
 
 1 - ☑ Revamp the UI
 2 - ☑ Store books in Drift Database 
-3 - ☐ Pull to refresh data and save into Database
-4 - ☐ Add dependency injection
+3 - ☑ Pull to refresh data and save into Database
+4 - ☑ Add dependency injection
 5 - ☐ Store sermons in Drift Database
 6 - ☐ Download sermons mp3
 7 - ☐ Save progress

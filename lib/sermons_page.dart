@@ -3,10 +3,10 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
-import 'package:ip_semear_sermoes/main.dart';
-import 'package:ip_semear_sermoes/semear_widgets.dart';
 
 import 'audio_player_handler.dart';
+import 'dependency_injection.dart';
+import 'semear_widgets.dart';
 import 'utils/constants.dart';
 import 'utils/models.dart';
 import 'utils/widget_view.dart';
@@ -32,6 +32,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
   late bool _showPlayer;
   late bool _isLoadingAudio;
   late bool _hasError;
+  late AudioPlayerHandler _audioHandler;
 
   Future<List<SermonModel>> _getSermons() async {
     setState(() => _hasError = false);
@@ -99,37 +100,37 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     return sermons.reversed.toList();
   }
 
-  void _onPlayPressed() => audioHandler.play();
+  void _onPlayPressed() => _audioHandler.play();
 
-  void _onPausePressed() => audioHandler.pause();
+  void _onPausePressed() => _audioHandler.pause();
 
   void _onSeekChanged(double newSecondsValue) =>
-      audioHandler.seek(Duration(seconds: newSecondsValue.toInt()));
+      _audioHandler.seek(Duration(seconds: newSecondsValue.toInt()));
 
   void _onStopPressed() {
-    audioHandler.stop();
+    _audioHandler.stop();
     setState(() => _showPlayer = false);
   }
 
   void _onReplayXSecondsPressed() {
     final finalDuration =
-        audioHandler.progressNotifier.value.current - const Duration(seconds: 10);
+        _audioHandler.progressNotifier.value.current - const Duration(seconds: 10);
 
     if (finalDuration > Duration.zero) {
-      audioHandler.seek(finalDuration);
+      _audioHandler.seek(finalDuration);
     } else {
-      audioHandler.seek(Duration.zero);
+      _audioHandler.seek(Duration.zero);
     }
   }
 
   void _onForwardXSecondsPressed() {
     final finalDuration =
-        audioHandler.progressNotifier.value.current + const Duration(seconds: 10);
+        _audioHandler.progressNotifier.value.current + const Duration(seconds: 10);
 
-    if (finalDuration < audioHandler.progressNotifier.value.total) {
-      audioHandler.seek(finalDuration);
+    if (finalDuration < _audioHandler.progressNotifier.value.total) {
+      _audioHandler.seek(finalDuration);
     } else {
-      audioHandler.seek(audioHandler.progressNotifier.value.total);
+      _audioHandler.seek(_audioHandler.progressNotifier.value.total);
     }
   }
 
@@ -154,7 +155,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
       _isLoadingAudio = true;
     });
 
-    await audioHandler.setSermon(sermon);
+    await _audioHandler.setSermon(sermon);
 
     setState(() {
       _showPlayer = true;
@@ -171,6 +172,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     _expandableControllers = [];
     _showPlayer = false;
     _isLoadingAudio = false;
+    _audioHandler = getIt<AudioPlayerHandler>();
 
     _pageLoader = _getSermons();
   }
@@ -337,7 +339,7 @@ class _SermonsSingleBookPageView
     return Column(
       children: [
         ValueListenableBuilder<ProgressBarState>(
-          valueListenable: audioHandler.progressNotifier,
+          valueListenable: state._audioHandler.progressNotifier,
           builder: (_, value, __) => value.total != Duration.zero
               ? SemearSlider(
                   progressBarState: value,
@@ -349,7 +351,8 @@ class _SermonsSingleBookPageView
                 ),
         ),
         StreamBuilder<bool>(
-          stream: audioHandler.playbackState.map((state) => state.playing).distinct(),
+          stream:
+              state._audioHandler.playbackState.map((state) => state.playing).distinct(),
           builder: (context, snapshot) {
             final playing = snapshot.data ?? false;
             return Row(

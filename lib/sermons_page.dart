@@ -3,6 +3,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:uuid/uuid.dart';
 
 import 'audio_player_handler.dart';
@@ -201,7 +202,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     });
   }
 
-  void _onReloadData() => _pageLoader = _getSermonList(true);
+  Future<void> _onReloadData() => _pageLoader = _getSermonList(true);
 
   @override
   void initState() {
@@ -244,17 +245,22 @@ class _SermonsSingleBookPageView
                     snapshot.data?.forEach(
                         (_) => state._expandableControllers.add(ExpandableController()));
 
-                    return ListView.builder(
-                      itemCount: snapshot.data!.length,
-                      padding: const EdgeInsets.all(4.0),
-                      itemBuilder: (context, index) {
-                        final sermon = snapshot.data![index];
-                        return SemearSermonCard(
-                          controller: state._expandableControllers[index],
-                          collapsed: _buildCollapsed(sermon, index),
-                          expanded: _buildExpanded(sermon, index),
-                        );
-                      },
+                    return LiquidPullToRefresh(
+                      onRefresh: state._onReloadData,
+                      child: ListView.builder(
+                        itemCount: snapshot.data!.length,
+                        padding: const EdgeInsets.all(4.0),
+                        itemBuilder: (context, index) => Column(
+                          children: [
+                            SemearPullToRefresh(index: index),
+                            SemearSermonCard(
+                              controller: state._expandableControllers[index],
+                              collapsed: _buildCollapsed(snapshot.data![index], index),
+                              expanded: _buildExpanded(snapshot.data![index], index),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   } else {
                     return const SemearLoadingWidget();

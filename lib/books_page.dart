@@ -9,7 +9,6 @@ import 'database/semear_database.dart';
 import 'dependency_injection.dart';
 import 'semear_widgets.dart';
 import 'sermons_page.dart';
-import 'utils/constants.dart';
 import 'utils/widget_view.dart';
 
 class BooksPage extends StatefulWidget {
@@ -142,24 +141,7 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                       itemBuilder: (context, index) {
                         return Column(
                           children: [
-                            index == 0
-                                ? Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: const [
-                                        Text(
-                                          'Puxe para atualizar',
-                                          style: TextStyle(color: semearLightGrey),
-                                        ),
-                                        Icon(
-                                          Icons.arrow_drop_down,
-                                          color: semearLightGrey,
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : const SizedBox.shrink(),
+                            SemearPullToRefresh(index: index),
                             SemearBookCard(
                               onPressed: () => state._onBookPressed(
                                   snapshot.data![index].url, snapshot.data![index].title),

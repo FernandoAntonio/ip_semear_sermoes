@@ -56,6 +56,37 @@ class SemearErrorWidget extends StatelessWidget {
       );
 }
 
+class SemearPullToRefresh extends StatelessWidget {
+  final int index;
+
+  const SemearPullToRefresh({
+    Key? key,
+    required this.index,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return index == 0
+        ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Text(
+                  'Puxe para atualizar',
+                  style: TextStyle(color: semearLightGrey),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: semearLightGrey,
+                ),
+              ],
+            ),
+          )
+        : const SizedBox.shrink();
+  }
+}
+
 class SemearIcon extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData iconData;

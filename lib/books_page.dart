@@ -5,6 +5,8 @@ import 'package:html/parser.dart';
 import 'package:ip_semear_sermoes/database/semear_database.dart';
 import 'package:ip_semear_sermoes/semear_widgets.dart';
 import 'package:ip_semear_sermoes/sermons_page.dart';
+import 'package:ip_semear_sermoes/utils/constants.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:uuid/uuid.dart';
 
 import 'main.dart';
@@ -22,17 +24,30 @@ class SermonsBooksPageController extends State<BooksPage> {
   late bool _hasError;
   late Dio _dio;
 
-  Future<List<Book>?> _getBookList() async {
+  Future<List<Book>?> _getBookList(bool fromInternet) async {
     setState(() => _hasError = false);
 
     try {
       List<Book> bookList = [];
-      bookList = await database.getAllBooks();
 
-      if (bookList.isEmpty) {
+      if (!fromInternet) {
+        bookList = await database.getAllBooks();
+
+        if (bookList.isEmpty) {
+          bookList = await _getBooksFromInternet();
+          if (bookList.isNotEmpty) {
+            _storeBooks(bookList);
+          } else {
+            throw Exception();
+          }
+        }
+      } else if (fromInternet) {
+        await database.deleteAllBooks();
         bookList = await _getBooksFromInternet();
         if (bookList.isNotEmpty) {
           _storeBooks(bookList);
+        } else {
+          throw Exception();
         }
       }
 
@@ -83,7 +98,9 @@ class SermonsBooksPageController extends State<BooksPage> {
 
   void _onBookPressed(String url, String bookName) => _getSermonsFromBook(url, bookName);
 
-  void _onRetryPressed() => _pageLoader = _getBookList();
+  void _onRetryPressed() => _pageLoader = _getBookList(false);
+
+  Future<void> _onPullToRefresh() => _pageLoader = _getBookList(true);
 
   @override
   void initState() {
@@ -91,7 +108,7 @@ class SermonsBooksPageController extends State<BooksPage> {
     _dio = Dio(BaseOptions(connectTimeout: 15000, receiveTimeout: 15000));
     _hasError = false;
 
-    _pageLoader = _getBookList();
+    _pageLoader = _getBookList(false);
   }
 
   @override
@@ -116,16 +133,41 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
               future: state._pageLoader,
               builder: (context, snapshot) {
                 if (snapshot.data != null && snapshot.hasData) {
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(4.0),
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return SemearBookCard(
-                        onPressed: () => state._onBookPressed(
-                            snapshot.data![index].url, snapshot.data![index].title),
-                        sermonBookName: snapshot.data![index].title,
-                      );
-                    },
+                  return LiquidPullToRefresh(
+                    onRefresh: state._onPullToRefresh,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(4.0),
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return Column(
+                          children: [
+                            index == 0
+                                ? Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: const [
+                                        Text(
+                                          'Puxe para atualizar',
+                                          style: TextStyle(color: semearLightGrey),
+                                        ),
+                                        Icon(
+                                          Icons.arrow_drop_down,
+                                          color: semearLightGrey,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                            SemearBookCard(
+                              onPressed: () => state._onBookPressed(
+                                  snapshot.data![index].url, snapshot.data![index].title),
+                              sermonBookName: snapshot.data![index].title,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   );
                 } else {
                   return const SemearLoadingWidget();

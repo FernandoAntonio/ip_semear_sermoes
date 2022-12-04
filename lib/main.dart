@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
           activeTrackColor: semearGreen,
           inactiveTrackColor: semearGreen.withOpacity(0.1),
           valueIndicatorTextStyle: const TextStyle(color: semearGrey),
-          valueIndicatorColor: semearGreen,
+          valueIndicatorColor: Colors.grey,
         ),
         appBarTheme:
             const AppBarTheme(foregroundColor: semearGreen, backgroundColor: semearGrey),

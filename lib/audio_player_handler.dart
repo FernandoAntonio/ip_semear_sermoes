@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'main.dart';
-import 'models.dart';
+import 'utils/models.dart';
 
 class ProgressBarState {
   ProgressBarState({

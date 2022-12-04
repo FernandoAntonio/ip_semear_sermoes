@@ -8,7 +8,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'main.dart';
 import 'utils/models.dart';
 
 class ProgressBarState {
@@ -147,7 +146,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
 
   Stream<MediaState> get mediaStateStream =>
       Rx.combineLatest2<MediaItem?, Duration, MediaState>(
-          audioHandler.mediaItem,
+          mediaItem,
           AudioService.position,
           (mediaItem, position) => MediaState(mediaItem, position));
 }

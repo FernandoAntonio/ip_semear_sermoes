@@ -40,6 +40,9 @@ class SemearDatabase extends _$SemearDatabase {
 
   //READ
   Future<List<Book>> getAllBooks() => select(books).get();
+
+  //DELETE
+  Future<void> deleteAllBooks() => delete(books).go();
 }
 
 LazyDatabase _openConnection() {

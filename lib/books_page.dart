@@ -86,11 +86,9 @@ class SermonsBooksPageController extends State<BooksPage> {
   Future<void> _storeBooks(List<Book> bookList) async =>
       await _database.storeAllBooks(bookList);
 
-  Future<void> _getSermonsFromBook(Book book) async {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => SermonsPage(book: book)),
-    );
-  }
+  Future<void> _getSermonsFromBook(Book book) async => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => SermonsPage(book: book)),
+      );
 
   void _onBookPressed(Book book) => _getSermonsFromBook(book);
 

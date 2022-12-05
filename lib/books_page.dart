@@ -86,11 +86,9 @@ class SermonsBooksPageController extends State<BooksPage> {
   Future<void> _storeBooks(List<Book> bookList) async =>
       await _database.storeAllBooks(bookList);
 
-  Future<void> _getSermonsFromBook(Book book) async {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => SermonsPage(book: book)),
-    );
-  }
+  Future<void> _getSermonsFromBook(Book book) async => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => SermonsPage(book: book)),
+      );
 
   void _onBookPressed(Book book) => _getSermonsFromBook(book);
 
@@ -133,8 +131,10 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                     child: ListView.builder(
                       padding: const EdgeInsets.all(4.0),
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return Column(
+                      itemBuilder: (context, index) => AnimatedListItem(
+                        key: ValueKey<String>(snapshot.data![index].id),
+                        index: index,
+                        child: Column(
                           children: [
                             SemearPullToRefresh(index: index),
                             SemearBookCard(
@@ -143,8 +143,8 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                               sermonBookName: snapshot.data![index].title,
                             ),
                           ],
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   );
                 } else {

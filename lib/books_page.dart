@@ -133,8 +133,10 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                     child: ListView.builder(
                       padding: const EdgeInsets.all(4.0),
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return Column(
+                      itemBuilder: (context, index) => AnimatedListItem(
+                        key: ValueKey<String>(snapshot.data![index].id),
+                        index: index,
+                        child: Column(
                           children: [
                             SemearPullToRefresh(index: index),
                             SemearBookCard(
@@ -143,8 +145,8 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                               sermonBookName: snapshot.data![index].title,
                             ),
                           ],
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   );
                 } else {

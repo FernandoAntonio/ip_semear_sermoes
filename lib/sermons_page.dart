@@ -246,15 +246,19 @@ class _SermonsSingleBookPageView
                       child: ListView.builder(
                         itemCount: snapshot.data!.length,
                         padding: const EdgeInsets.all(4.0),
-                        itemBuilder: (context, index) => Column(
-                          children: [
-                            SemearPullToRefresh(index: index),
-                            SemearSermonCard(
-                              controller: state._expandableControllers[index],
-                              collapsed: _buildCollapsed(snapshot.data![index], index),
-                              expanded: _buildExpanded(snapshot.data![index], index),
-                            ),
-                          ],
+                        itemBuilder: (context, index) => AnimatedListItem(
+                          key: ValueKey<String>(snapshot.data![index].id),
+                          index: index,
+                          child: Column(
+                            children: [
+                              SemearPullToRefresh(index: index),
+                              SemearSermonCard(
+                                controller: state._expandableControllers[index],
+                                collapsed: _buildCollapsed(snapshot.data![index], index),
+                                expanded: _buildExpanded(snapshot.data![index], index),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );

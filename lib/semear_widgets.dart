@@ -251,3 +251,54 @@ class SemearSlider extends StatelessWidget {
     );
   }
 }
+
+class AnimatedListItem extends StatefulWidget {
+  final int index;
+  final Widget child;
+
+  const AnimatedListItem({
+    Key? key,
+    required this.child,
+    required this.index,
+  }) : super(key: key);
+
+  @override
+  State<AnimatedListItem> createState() => _AnimatedListItemState();
+}
+
+class _AnimatedListItemState extends State<AnimatedListItem> {
+  bool _animate = false;
+  static bool _isStart = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isStart) {
+      Future.delayed(Duration(milliseconds: widget.index * 100), () {
+        if (mounted) {
+          setState(() {
+            _animate = true;
+            _isStart = false;
+          });
+        }
+      });
+    } else {
+      _animate = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 1400),
+      opacity: _animate ? 1 : 0,
+      curve: Curves.easeInOutQuart,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 700),
+        curve: Curves.ease,
+        offset: _animate ? const Offset(0.0, 0.0) : const Offset(10.0, 0.0),
+        child: widget.child,
+      ),
+    );
+  }
+}

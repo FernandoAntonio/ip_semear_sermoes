@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
@@ -389,15 +392,16 @@ class _SermonsSingleBookPageView
                 if (value.data.isNotEmpty) {
                   return Row(
                     children: [
-                      Opacity(
-                        opacity: 0.05,
-                        child: CustomPaint(
-                          foregroundPainter: BarVisualizer(
-                            waveData: value.data,
-                            width: MediaQuery.of(context).size.width,
-                          ),
-                        ),
-                      ),
+                      MyPainter(waveData: value.data),
+                      // Opacity(
+                      //   opacity: 0.05,
+                      //   child: CustomPaint(
+                      //     foregroundPainter: BarVisualizer(
+                      //       waveData: value.data,
+                      //       width: MediaQuery.of(context).size.width,
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   );
                 } else {
@@ -470,4 +474,177 @@ class _SermonsSingleBookPageView
           ),
         ],
       );
+}
+
+class MyPainter extends StatefulWidget {
+  final Uint8List waveData;
+
+  const MyPainter({
+    super.key,
+    required this.waveData,
+  });
+
+  @override
+  MyPainterState createState() => MyPainterState();
+}
+
+class MyPainterState extends State<MyPainter> with TickerProviderStateMixin {
+  late Animation<double> animation;
+  late AnimationController controller;
+
+  late Animation<double> animation2;
+  late AnimationController controller2;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    );
+
+    controller2 = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    );
+
+    Tween<double> radiusTween = Tween(begin: 0.0, end: 200);
+    Tween<double> rotationTween = Tween(begin: -math.pi, end: math.pi);
+
+    animation = rotationTween.animate(controller)
+      ..addListener(() {
+        setState(() {});
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          controller.repeat();
+        } else if (status == AnimationStatus.dismissed) {
+          controller.forward();
+        }
+      });
+
+    animation2 = radiusTween.animate(controller2)
+      ..addListener(() {
+        setState(() {});
+      })
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          controller2.reverse();
+        } else if (status == AnimationStatus.dismissed) {
+          controller2.forward();
+        }
+      });
+
+    controller.forward();
+    controller2.forward();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, snapshot) {
+        return CustomPaint(
+          painter: BarVisualizer(
+            // animation2.value,
+            // animation.value,
+            waveData: widget.waveData,
+            width: MediaQuery.of(context).size.width,
+          ),
+          child: Container(),
+        );
+      },
+    );
+  }
+}
+
+// FOR PAINTING POLYGONS
+class ShapePainter extends CustomPainter {
+  final double sides;
+  final double radius;
+  final double radians;
+  ShapePainter(this.sides, this.radius, this.radians);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = Colors.teal
+      ..strokeWidth = 5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    var path = Path();
+
+    var angle = (math.pi * 2) / sides;
+
+    Offset center = Offset(size.width / 2, size.height / 2);
+    Offset startPoint = Offset(radius * math.cos(radians), radius * math.sin(radians));
+
+    path.moveTo(startPoint.dx + center.dx, startPoint.dy + center.dy);
+
+    for (int i = 1; i <= sides; i++) {
+      double x = radius * math.cos(radians + angle * i) + center.dx;
+      double y = radius * math.sin(radians + angle * i) + center.dy;
+      path.lineTo(x, y);
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
+  }
+}
+
+class BarVisualizer extends CustomPainter {
+  final List<int> waveData;
+  final double _height;
+  final double _minimumHeight;
+  final double width;
+  final Paint wavePaint;
+  final int _density;
+  final int _gap;
+
+  BarVisualizer({
+    required this.waveData,
+    required this.width,
+  })  : _height = 20.0,
+        _minimumHeight = 5.0 * -1,
+        _density = 20,
+        _gap = 1,
+        wavePaint = Paint()
+          ..color = semearOrange
+          ..style = PaintingStyle.fill;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    double barWidth = width / _density;
+    double div = waveData.length / _density;
+    wavePaint.strokeWidth = barWidth - _gap;
+    for (int i = 0; i < _density; i++) {
+      int bytePosition = (i * div).ceil();
+      double top = (_height / 2) - waveData[bytePosition].abs();
+      double barX = (i * barWidth) + (barWidth / 2);
+      if (top > _minimumHeight) {
+        top = _minimumHeight;
+      }
+
+      if (waveData.every((e) => e == 128)) {
+        canvas.drawLine(Offset(barX, 0), Offset(barX, -5), wavePaint);
+      } else {
+        canvas.drawLine(Offset(barX, 0), Offset(barX, top), wavePaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

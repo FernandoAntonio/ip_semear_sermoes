@@ -5,7 +5,6 @@ import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
-import 'package:uuid/uuid.dart';
 
 import 'audio_player_handler.dart';
 import 'database/semear_database.dart';
@@ -116,14 +115,16 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
 
       for (dom.Node node in sermonNodes) {
         final sermon = Sermon(
-            id: const Uuid().v4(),
-            bookId: widget.book.id,
-            date: node.nodes[1].nodes[0].text?.trim() ?? '',
-            title: node.nodes[3].nodes[0].nodes[0].text?.trim() ?? '',
-            preacher: node.nodes[6].text?.replaceAll('|', '').trim() ?? '',
-            series: node.nodes[8].text?.replaceAll('|', '').trim() ?? '',
-            passage: node.nodes[10].text?.trim() ?? '',
-            mp3Url: node.nodes[11].nodes[2].attributes['href'].toString());
+          id: '',
+          bookId: widget.book.id,
+          date: node.nodes[1].nodes[0].text?.trim() ?? '',
+          title: node.nodes[3].nodes[0].nodes[0].text?.trim() ?? '',
+          preacher: node.nodes[6].text?.replaceAll('|', '').trim() ?? '',
+          series: node.nodes[8].text?.replaceAll('|', '').trim() ?? '',
+          passage: node.nodes[10].text?.trim() ?? '',
+          mp3Url: node.nodes[11].nodes[2].attributes['href'].toString(),
+          completed: false,
+        );
         sermons.add(sermon);
       }
     } catch (_) {

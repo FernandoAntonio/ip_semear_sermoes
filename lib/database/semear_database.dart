@@ -4,17 +4,18 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
 part 'semear_database.g.dart';
 
 class Books extends Table {
-  TextColumn get id => text()();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get title => text()();
   TextColumn get url => text()();
 }
 
 class Sermons extends Table {
-  TextColumn get id => text()();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get bookId => text()();
   TextColumn get date => text()();
   TextColumn get title => text()();
@@ -22,6 +23,8 @@ class Sermons extends Table {
   TextColumn get series => text()();
   TextColumn get passage => text()();
   TextColumn get mp3Url => text()();
+  TextColumn get downloadedMp3Path => text().nullable()();
+  BoolColumn get completed => boolean().withDefault(const Constant(false))();
 }
 
 @DriftDatabase(tables: [Books, Sermons])
@@ -34,15 +37,13 @@ class SemearDatabase extends _$SemearDatabase {
   //CREATE
   Future<void> storeAllBooks(List<Book> bookList) async {
     for (Book book in bookList) {
-      await into(books)
-          .insert(BooksCompanion.insert(id: book.id, title: book.title, url: book.url));
+      await into(books).insert(BooksCompanion.insert(title: book.title, url: book.url));
     }
   }
 
   Future<void> storeAllSermons(List<Sermon> sermonList) async {
     for (Sermon sermon in sermonList) {
       await into(sermons).insert(SermonsCompanion.insert(
-        id: sermon.id,
         bookId: sermon.bookId,
         title: sermon.title,
         date: sermon.date,

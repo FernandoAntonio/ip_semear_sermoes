@@ -303,63 +303,7 @@ class _AnimatedListItemState extends State<AnimatedListItem> {
   }
 }
 
-class BarVisualizerAnimation extends StatefulWidget {
-  final List<int> waveData;
-  final double width;
-
-  const BarVisualizerAnimation({
-    super.key,
-    required this.waveData,
-    required this.width,
-  });
-
-  @override
-  State<StatefulWidget> createState() => _BarVisualizerAnimationState();
-}
-
-class _BarVisualizerAnimationState extends State<BarVisualizerAnimation>
-    with TickerProviderStateMixin {
-  double _progress = 0.0;
-  late Animation<double> _animation;
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    _controller =
-        AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
-
-    _animation = Tween(begin: 0.0, end: 1.0).animate(_controller)
-      ..addListener(() {
-        setState(() {
-          _progress = _animation.value;
-        });
-      });
-
-    _controller.forward();
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      foregroundPainter: BarVisualizer(
-        progress: _progress,
-        width: widget.width,
-        waveData: widget.waveData,
-      ),
-    );
-  }
-}
-
 class BarVisualizer extends CustomPainter {
-  double progress;
   final List<int> waveData;
   final double _height;
   final double _minimumHeight;
@@ -369,7 +313,6 @@ class BarVisualizer extends CustomPainter {
   final int _gap;
 
   BarVisualizer({
-    required this.progress,
     required this.waveData,
     required this.width,
   })  : _height = 20.0,
@@ -396,8 +339,7 @@ class BarVisualizer extends CustomPainter {
       if (waveData.every((e) => e == 128)) {
         canvas.drawLine(Offset(barX, 0), Offset(barX, -5), wavePaint);
       } else {
-        canvas.drawLine(Offset(barX * progress, (_height / 6) * progress),
-            Offset(barX * progress, top * progress), wavePaint);
+        canvas.drawLine(Offset(barX, (_height / 6)), Offset(barX, top), wavePaint);
       }
     }
   }

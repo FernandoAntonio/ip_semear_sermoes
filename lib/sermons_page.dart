@@ -390,9 +390,11 @@ class _SermonsSingleBookPageView
                     children: [
                       Opacity(
                         opacity: 0.05,
-                        child: BarVisualizerAnimation(
-                          waveData: value.data,
-                          width: MediaQuery.of(context).size.width,
+                        child: CustomPaint(
+                          foregroundPainter: BarVisualizer(
+                            waveData: value.data,
+                            width: MediaQuery.of(context).size.width,
+                          ),
                         ),
                       ),
                     ],
@@ -441,7 +443,7 @@ class _SermonsSingleBookPageView
                             decoration: BoxDecoration(
                               gradient: semearGreenGradient,
                               borderRadius: BorderRadius.circular(100.0),
-                              boxShadow: boxShadowsLightGrey,
+                              boxShadow: boxShadowsGrey,
                             ),
                             child: Icon(
                               playing ? Icons.pause : Icons.play_arrow,

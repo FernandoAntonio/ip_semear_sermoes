@@ -4,12 +4,14 @@ import 'constants.dart';
 
 ThemeData getTheme() {
   return ThemeData.dark().copyWith(
+    scaffoldBackgroundColor: semearDarkGrey,
     sliderTheme: const SliderThemeData(
-        thumbColor: semearGreen,
-        activeTrackColor: Colors.transparent,
-        overlayColor: Colors.transparent,
-        inactiveTrackColor: semearLightGrey,
-        trackShape: SliderCustomTrackShape()),
+      thumbColor: semearGreen,
+      activeTrackColor: Colors.transparent,
+      overlayColor: Colors.transparent,
+      inactiveTrackColor: semearLightGrey,
+      trackShape: SliderCustomTrackShape(),
+    ),
     cardTheme: const CardTheme(color: semearGrey),
     appBarTheme:
         const AppBarTheme(foregroundColor: semearGreen, backgroundColor: semearDarkGrey),

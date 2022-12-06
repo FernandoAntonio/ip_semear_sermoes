@@ -1,7 +1,7 @@
 name: ip_semear_sermoes
 description: An application to listen to the IP Semear podcasts
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: '>=2.18.2 <3.0.0'
@@ -11,19 +11,26 @@ dependencies:
     sdk: flutter
 
   audio_service: ^0.18.7
-  audio_video_progress_bar: ^0.11.0
   dio: ^4.0.6
+  drift: ^2.3.0
   expandable: ^5.0.1
-  just_audio: ^0.9.30
+  get_it: ^7.2.0
+  just_audio:
+    path: ../just_audio/just_audio
+  liquid_pull_to_refresh: ^3.0.1
   html: ^0.15.1
+  path: ^1.8.2
   path_provider: ^2.0.11
-  rxdart: ^0.27.7
-
+  permission_handler: ^10.2.0
+  sqlite3_flutter_libs: ^0.5.12
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.1
+  drift_dev: ^2.3.2
+  build_runner: ^2.3.2
 
 flutter:
   uses-material-design: true

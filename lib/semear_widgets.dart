@@ -302,3 +302,106 @@ class _AnimatedListItemState extends State<AnimatedListItem> {
     );
   }
 }
+
+class BarVisualizerAnimation extends StatefulWidget {
+  final List<int> waveData;
+  final double width;
+
+  const BarVisualizerAnimation({
+    super.key,
+    required this.waveData,
+    required this.width,
+  });
+
+  @override
+  State<StatefulWidget> createState() => _BarVisualizerAnimationState();
+}
+
+class _BarVisualizerAnimationState extends State<BarVisualizerAnimation>
+    with TickerProviderStateMixin {
+  double _progress = 0.0;
+  late Animation<double> _animation;
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    _controller =
+        AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
+
+    _animation = Tween(begin: 0.0, end: 1.0).animate(_controller)
+      ..addListener(() {
+        setState(() {
+          _progress = _animation.value;
+        });
+      });
+
+    _controller.forward();
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      foregroundPainter: BarVisualizer(
+        progress: _progress,
+        width: widget.width,
+        waveData: widget.waveData,
+      ),
+    );
+  }
+}
+
+class BarVisualizer extends CustomPainter {
+  double progress;
+  final List<int> waveData;
+  final double _height;
+  final double _minimumHeight;
+  final double width;
+  final Paint wavePaint;
+  final int _density;
+  final int _gap;
+
+  BarVisualizer({
+    required this.progress,
+    required this.waveData,
+    required this.width,
+  })  : _height = 20.0,
+        _minimumHeight = 5.0 * -1,
+        _density = 20,
+        _gap = 1,
+        wavePaint = Paint()
+          ..color = semearOrange
+          ..style = PaintingStyle.fill;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    double barWidth = width / _density;
+    double div = waveData.length / _density;
+    wavePaint.strokeWidth = barWidth - _gap;
+    for (int i = 0; i < _density; i++) {
+      int bytePosition = (i * div).ceil();
+      double top = (_height / 2) - waveData[bytePosition].abs();
+      double barX = (i * barWidth) + (barWidth / 2);
+      if (top > _minimumHeight) {
+        top = _minimumHeight;
+      }
+
+      if (waveData.every((e) => e == 128)) {
+        canvas.drawLine(Offset(barX, 0), Offset(barX, -5), wavePaint);
+      } else {
+        canvas.drawLine(Offset(barX * progress, (_height / 6) * progress),
+            Offset(barX * progress, top * progress), wavePaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+}

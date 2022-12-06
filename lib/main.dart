@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'books_page.dart';
 import 'dependency_injection.dart';
@@ -9,8 +10,24 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    Permission.microphone.isGranted.then((value) {
+      if (!value) {
+        Permission.microphone.request();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

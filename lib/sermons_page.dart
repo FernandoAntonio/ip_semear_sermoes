@@ -3,6 +3,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:uuid/uuid.dart';
 
@@ -252,7 +253,8 @@ class _SermonsSingleBookPageView
                             SemearSermonCard(
                               controller: state._expandableControllers[index],
                               collapsed: _buildCollapsed(snapshot.data![index], index),
-                              expanded: _buildExpanded(snapshot.data![index], index),
+                              expanded:
+                                  _buildExpanded(context, snapshot.data![index], index),
                             ),
                           ],
                         ),
@@ -304,7 +306,7 @@ class _SermonsSingleBookPageView
         onTap: () async => state._onExpandablePressed(index),
       );
 
-  Widget _buildExpanded(Sermon sermon, int index) => Column(
+  Widget _buildExpanded(BuildContext context, Sermon sermon, int index) => Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           InkWell(
@@ -357,81 +359,112 @@ class _SermonsSingleBookPageView
             ),
             onTap: () => state._onExpandablePressed(index),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-            child: state._isLoadingAudio
-                ? _buildLoadingAudio()
-                : state._showPlayer
-                    ? _buildControls()
-                    : TextButton(
+          state._isLoadingAudio
+              ? _buildLoadingAudio()
+              : state._showPlayer
+                  ? _buildPlayer(context)
+                  : Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextButton(
                         onPressed: () => state._onLoadAudioPressed(sermon),
                         child: const Text('Carregar Áudio'),
                       ),
-          ),
+                    ),
         ],
       );
 
   Widget _buildLoadingAudio() => const Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
         child: Center(child: CircularProgressIndicator()),
       );
 
-  Widget _buildControls() {
-    return Column(
-      children: [
-        ValueListenableBuilder<ProgressBarState>(
-          valueListenable: state._audioHandler.progressNotifier,
-          builder: (_, value, __) => value.total != Duration.zero
-              ? SemearSlider(
-                  progressBarState: value,
-                  onSeekChanged: state._onSeekChanged,
-                )
-              : const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 4.0),
-                  child: LinearProgressIndicator(backgroundColor: semearLightGrey),
-                ),
-        ),
-        StreamBuilder<bool>(
-          stream:
-              state._audioHandler.playbackState.map((state) => state.playing).distinct(),
-          builder: (context, snapshot) {
-            final playing = snapshot.data ?? false;
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildPlayer(context) => Stack(
+        children: [
+          Positioned(
+            bottom: 0.0,
+            child: ValueListenableBuilder<VisualizerWaveformCapture>(
+              valueListenable: state._audioHandler.visualizerNotifier,
+              builder: (_, value, __) {
+                if (value.data.isNotEmpty) {
+                  return Row(
+                    children: [
+                      Opacity(
+                        opacity: 0.05,
+                        child: BarVisualizerAnimation(
+                          waveData: value.data,
+                          width: MediaQuery.of(context).size.width,
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 32.0, 16.0, 16.0),
+            child: Column(
               children: [
-                SemearIcon(
-                  iconData: Icons.replay_10,
-                  onPressed: state._onReplayXSecondsPressed,
+                ValueListenableBuilder<ProgressBarState>(
+                  valueListenable: state._audioHandler.progressNotifier,
+                  builder: (_, value, __) => value.total != Duration.zero
+                      ? SemearSlider(
+                          progressBarState: value,
+                          onSeekChanged: state._onSeekChanged,
+                        )
+                      : const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 4.0),
+                          child:
+                              LinearProgressIndicator(backgroundColor: semearLightGrey),
+                        ),
                 ),
-                const SizedBox(width: 16.0),
-                IconButton(
-                  icon: Container(
-                    height: 60.0,
-                    width: 60.0,
-                    decoration: BoxDecoration(
-                      gradient: semearGreenGradient,
-                      borderRadius: BorderRadius.circular(100.0),
-                      boxShadow: boxShadowsLightGrey,
-                    ),
-                    child: Icon(
-                      playing ? Icons.pause : Icons.play_arrow,
-                      size: 30.0,
-                      color: semearDarkGrey,
-                    ),
-                  ),
-                  iconSize: 60.0,
-                  onPressed: playing ? state._onPausePressed : state._onPlayPressed,
-                ),
-                const SizedBox(width: 16.0),
-                SemearIcon(
-                  iconData: Icons.forward_10,
-                  onPressed: state._onForwardXSecondsPressed,
+                StreamBuilder<bool>(
+                  stream: state._audioHandler.playbackState
+                      .map((state) => state.playing)
+                      .distinct(),
+                  builder: (context, snapshot) {
+                    final playing = snapshot.data ?? false;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SemearIcon(
+                          iconData: Icons.replay_10,
+                          onPressed: state._onReplayXSecondsPressed,
+                        ),
+                        const SizedBox(width: 16.0),
+                        IconButton(
+                          icon: Container(
+                            height: 60.0,
+                            width: 60.0,
+                            decoration: BoxDecoration(
+                              gradient: semearGreenGradient,
+                              borderRadius: BorderRadius.circular(100.0),
+                              boxShadow: boxShadowsLightGrey,
+                            ),
+                            child: Icon(
+                              playing ? Icons.pause : Icons.play_arrow,
+                              size: 30.0,
+                              color: semearDarkGrey,
+                            ),
+                          ),
+                          iconSize: 60.0,
+                          onPressed:
+                              playing ? state._onPausePressed : state._onPlayPressed,
+                        ),
+                        const SizedBox(width: 16.0),
+                        SemearIcon(
+                          iconData: Icons.forward_10,
+                          onPressed: state._onForwardXSecondsPressed,
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
-            );
-          },
-        ),
-      ],
-    );
-  }
+            ),
+          ),
+        ],
+      );
 }

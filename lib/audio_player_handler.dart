@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:rxdart/rxdart.dart';
 
 import 'database/semear_database.dart';
 
@@ -54,7 +54,28 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         total: totalDuration ?? Duration.zero,
       );
     });
+
+    _player.playerStateStream.listen((state) {
+      if (state.playing &&
+          state.processingState != ProcessingState.idle &&
+          state.processingState != ProcessingState.completed) {
+        _player.startVisualizer(
+            enableWaveform: true, enableFft: true, captureRate: 8000, captureSize: 256);
+      } else {
+        _player.stopVisualizer();
+      }
+    });
+
+    _player.visualizerWaveformStream
+        .listen((visualizer) => visualizerNotifier.value = visualizer);
   }
+
+  final visualizerNotifier = ValueNotifier<VisualizerWaveformCapture>(
+    VisualizerWaveformCapture(
+      samplingRate: 0,
+      data: Uint8List(0),
+    ),
+  );
 
   final progressNotifier = ValueNotifier<ProgressBarState>(
     ProgressBarState(
@@ -70,6 +91,9 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   }
 
   Future<void> setSermon(Sermon sermon) async {
+    // Load the player.
+    final duration =
+        await _player.setAudioSource(AudioSource.uri(Uri.parse(sermon.mp3Url)));
     final imageFile = await _getImageFileFromAssets('logotipo.png');
     final imageFilePath = 'file://${imageFile.path}';
 
@@ -79,12 +103,10 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       title: sermon.title,
       artist: sermon.preacher,
       artUri: Uri.parse(imageFilePath),
+      duration: duration,
     );
 
     mediaItem.add(currentItem);
-
-    // Load the player.
-    _player.setAudioSource(AudioSource.uri(Uri.parse(currentItem.id)));
   }
 
   Future<File> _getImageFileFromAssets(String path) async {
@@ -108,6 +130,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> stop() async {
+    await _player.stopVisualizer();
     await _player.stop();
     await _player.seek(const Duration());
     progressNotifier.value = ProgressBarState(
@@ -143,17 +166,4 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       queueIndex: event.currentIndex,
     );
   }
-
-  Stream<MediaState> get mediaStateStream =>
-      Rx.combineLatest2<MediaItem?, Duration, MediaState>(
-          mediaItem,
-          AudioService.position,
-          (mediaItem, position) => MediaState(mediaItem, position));
-}
-
-class MediaState {
-  final MediaItem? mediaItem;
-  final Duration position;
-
-  MediaState(this.mediaItem, this.position);
 }

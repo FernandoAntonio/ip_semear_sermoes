@@ -19,8 +19,8 @@ Também conta com reprodução em segundo plano e controle de pausa e parada na 
 3 -  ☑ Pull to refresh data and save into Database
 4 -  ☑ Add dependency injection
 5 -  ☑ Store sermons in Drift Database
-6 -  ☐ Add animated lists
-7 -  ☐ Add audio visualizer
+6 -  ☑ Add animated lists
+7 -  ☑ Add audio visualizer
 8 -  ☐ Download sermons mp3
 9 -  ☐ Save progress
 10 - ☐ Store user preferences (e.g. replay or forward 5, 10 or 30 seconds)

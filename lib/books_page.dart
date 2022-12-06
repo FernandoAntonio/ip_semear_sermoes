@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
-import 'package:uuid/uuid.dart';
 
 import 'database/semear_database.dart';
 import 'dependency_injection.dart';
@@ -69,7 +68,7 @@ class SermonsBooksPageController extends State<BooksPage> {
       for (dom.Node node in list) {
         final data = node.nodes.first;
         final book = Book(
-          id: const Uuid().v4(),
+          id: ''.repl,
           title: data.text ?? '',
           url: data.attributes.values.first,
         );

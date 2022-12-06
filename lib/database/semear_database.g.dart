@@ -80,11 +80,10 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.url = const Value.absent(),
   });
   BooksCompanion.insert({
-    required String id,
+    this.id = const Value.absent(),
     required String title,
     required String url,
-  })  : id = Value(id),
-        title = Value(title),
+  })  : title = Value(title),
         url = Value(url);
   static Insertable<Book> custom({
     Expression<String>? id,
@@ -142,7 +141,9 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => const Uuid().v4());
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -166,8 +167,6 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -214,6 +213,8 @@ class Sermon extends DataClass implements Insertable<Sermon> {
   final String series;
   final String passage;
   final String mp3Url;
+  final String? downloadedMp3Path;
+  final bool completed;
   const Sermon(
       {required this.id,
       required this.bookId,
@@ -222,7 +223,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       required this.preacher,
       required this.series,
       required this.passage,
-      required this.mp3Url});
+      required this.mp3Url,
+      this.downloadedMp3Path,
+      required this.completed});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -234,6 +237,10 @@ class Sermon extends DataClass implements Insertable<Sermon> {
     map['series'] = Variable<String>(series);
     map['passage'] = Variable<String>(passage);
     map['mp3_url'] = Variable<String>(mp3Url);
+    if (!nullToAbsent || downloadedMp3Path != null) {
+      map['downloaded_mp3_path'] = Variable<String>(downloadedMp3Path);
+    }
+    map['completed'] = Variable<bool>(completed);
     return map;
   }
 
@@ -247,6 +254,10 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       series: Value(series),
       passage: Value(passage),
       mp3Url: Value(mp3Url),
+      downloadedMp3Path: downloadedMp3Path == null && nullToAbsent
+          ? const Value.absent()
+          : Value(downloadedMp3Path),
+      completed: Value(completed),
     );
   }
 
@@ -262,6 +273,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       series: serializer.fromJson<String>(json['series']),
       passage: serializer.fromJson<String>(json['passage']),
       mp3Url: serializer.fromJson<String>(json['mp3Url']),
+      downloadedMp3Path:
+          serializer.fromJson<String?>(json['downloadedMp3Path']),
+      completed: serializer.fromJson<bool>(json['completed']),
     );
   }
   @override
@@ -276,6 +290,8 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       'series': serializer.toJson<String>(series),
       'passage': serializer.toJson<String>(passage),
       'mp3Url': serializer.toJson<String>(mp3Url),
+      'downloadedMp3Path': serializer.toJson<String?>(downloadedMp3Path),
+      'completed': serializer.toJson<bool>(completed),
     };
   }
 
@@ -287,7 +303,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           String? preacher,
           String? series,
           String? passage,
-          String? mp3Url}) =>
+          String? mp3Url,
+          Value<String?> downloadedMp3Path = const Value.absent(),
+          bool? completed}) =>
       Sermon(
         id: id ?? this.id,
         bookId: bookId ?? this.bookId,
@@ -297,6 +315,10 @@ class Sermon extends DataClass implements Insertable<Sermon> {
         series: series ?? this.series,
         passage: passage ?? this.passage,
         mp3Url: mp3Url ?? this.mp3Url,
+        downloadedMp3Path: downloadedMp3Path.present
+            ? downloadedMp3Path.value
+            : this.downloadedMp3Path,
+        completed: completed ?? this.completed,
       );
   @override
   String toString() {
@@ -308,14 +330,16 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           ..write('preacher: $preacher, ')
           ..write('series: $series, ')
           ..write('passage: $passage, ')
-          ..write('mp3Url: $mp3Url')
+          ..write('mp3Url: $mp3Url, ')
+          ..write('downloadedMp3Path: $downloadedMp3Path, ')
+          ..write('completed: $completed')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, bookId, date, title, preacher, series, passage, mp3Url);
+  int get hashCode => Object.hash(id, bookId, date, title, preacher, series,
+      passage, mp3Url, downloadedMp3Path, completed);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -327,7 +351,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           other.preacher == this.preacher &&
           other.series == this.series &&
           other.passage == this.passage &&
-          other.mp3Url == this.mp3Url);
+          other.mp3Url == this.mp3Url &&
+          other.downloadedMp3Path == this.downloadedMp3Path &&
+          other.completed == this.completed);
 }
 
 class SermonsCompanion extends UpdateCompanion<Sermon> {
@@ -339,6 +365,8 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
   final Value<String> series;
   final Value<String> passage;
   final Value<String> mp3Url;
+  final Value<String?> downloadedMp3Path;
+  final Value<bool> completed;
   const SermonsCompanion({
     this.id = const Value.absent(),
     this.bookId = const Value.absent(),
@@ -348,9 +376,11 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     this.series = const Value.absent(),
     this.passage = const Value.absent(),
     this.mp3Url = const Value.absent(),
+    this.downloadedMp3Path = const Value.absent(),
+    this.completed = const Value.absent(),
   });
   SermonsCompanion.insert({
-    required String id,
+    this.id = const Value.absent(),
     required String bookId,
     required String date,
     required String title,
@@ -358,8 +388,9 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     required String series,
     required String passage,
     required String mp3Url,
-  })  : id = Value(id),
-        bookId = Value(bookId),
+    this.downloadedMp3Path = const Value.absent(),
+    this.completed = const Value.absent(),
+  })  : bookId = Value(bookId),
         date = Value(date),
         title = Value(title),
         preacher = Value(preacher),
@@ -375,6 +406,8 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     Expression<String>? series,
     Expression<String>? passage,
     Expression<String>? mp3Url,
+    Expression<String>? downloadedMp3Path,
+    Expression<bool>? completed,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -385,6 +418,8 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       if (series != null) 'series': series,
       if (passage != null) 'passage': passage,
       if (mp3Url != null) 'mp3_url': mp3Url,
+      if (downloadedMp3Path != null) 'downloaded_mp3_path': downloadedMp3Path,
+      if (completed != null) 'completed': completed,
     });
   }
 
@@ -396,7 +431,9 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       Value<String>? preacher,
       Value<String>? series,
       Value<String>? passage,
-      Value<String>? mp3Url}) {
+      Value<String>? mp3Url,
+      Value<String?>? downloadedMp3Path,
+      Value<bool>? completed}) {
     return SermonsCompanion(
       id: id ?? this.id,
       bookId: bookId ?? this.bookId,
@@ -406,6 +443,8 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       series: series ?? this.series,
       passage: passage ?? this.passage,
       mp3Url: mp3Url ?? this.mp3Url,
+      downloadedMp3Path: downloadedMp3Path ?? this.downloadedMp3Path,
+      completed: completed ?? this.completed,
     );
   }
 
@@ -436,6 +475,12 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     if (mp3Url.present) {
       map['mp3_url'] = Variable<String>(mp3Url.value);
     }
+    if (downloadedMp3Path.present) {
+      map['downloaded_mp3_path'] = Variable<String>(downloadedMp3Path.value);
+    }
+    if (completed.present) {
+      map['completed'] = Variable<bool>(completed.value);
+    }
     return map;
   }
 
@@ -449,7 +494,9 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
           ..write('preacher: $preacher, ')
           ..write('series: $series, ')
           ..write('passage: $passage, ')
-          ..write('mp3Url: $mp3Url')
+          ..write('mp3Url: $mp3Url, ')
+          ..write('downloadedMp3Path: $downloadedMp3Path, ')
+          ..write('completed: $completed')
           ..write(')'))
         .toString();
   }
@@ -464,7 +511,9 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => const Uuid().v4());
   static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
   @override
   late final GeneratedColumn<String> bookId = GeneratedColumn<String>(
@@ -502,9 +551,38 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
   late final GeneratedColumn<String> mp3Url = GeneratedColumn<String>(
       'mp3_url', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _downloadedMp3PathMeta =
+      const VerificationMeta('downloadedMp3Path');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, bookId, date, title, preacher, series, passage, mp3Url];
+  late final GeneratedColumn<String> downloadedMp3Path =
+      GeneratedColumn<String>('downloaded_mp3_path', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _completedMeta =
+      const VerificationMeta('completed');
+  @override
+  late final GeneratedColumn<bool> completed =
+      GeneratedColumn<bool>('completed', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: false,
+          defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
+            SqlDialect.sqlite: 'CHECK ("completed" IN (0, 1))',
+            SqlDialect.mysql: '',
+            SqlDialect.postgres: '',
+          }),
+          defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        bookId,
+        date,
+        title,
+        preacher,
+        series,
+        passage,
+        mp3Url,
+        downloadedMp3Path,
+        completed
+      ];
   @override
   String get aliasedName => _alias ?? 'sermons';
   @override
@@ -516,8 +594,6 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
     }
     if (data.containsKey('book_id')) {
       context.handle(_bookIdMeta,
@@ -561,6 +637,16 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
     } else if (isInserting) {
       context.missing(_mp3UrlMeta);
     }
+    if (data.containsKey('downloaded_mp3_path')) {
+      context.handle(
+          _downloadedMp3PathMeta,
+          downloadedMp3Path.isAcceptableOrUnknown(
+              data['downloaded_mp3_path']!, _downloadedMp3PathMeta));
+    }
+    if (data.containsKey('completed')) {
+      context.handle(_completedMeta,
+          completed.isAcceptableOrUnknown(data['completed']!, _completedMeta));
+    }
     return context;
   }
 
@@ -586,6 +672,10 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
           .read(DriftSqlType.string, data['${effectivePrefix}passage'])!,
       mp3Url: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}mp3_url'])!,
+      downloadedMp3Path: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}downloaded_mp3_path']),
+      completed: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}completed'])!,
     );
   }
 

@@ -68,7 +68,7 @@ class SermonsBooksPageController extends State<BooksPage> {
       for (dom.Node node in list) {
         final data = node.nodes.first;
         final book = Book(
-          id: ''.repl,
+          id: '',
           title: data.text ?? '',
           url: data.attributes.values.first,
         );

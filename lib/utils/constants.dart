@@ -34,9 +34,9 @@ const semearOrangeGradient = LinearGradient(
 );
 
 //Light Grey
-const semearLightGrey = Color.fromARGB(255, 158, 158, 158);
-const semearLightGreyWithOpacity30 = Color.fromARGB(76, 158, 158, 158);
-const semearLightGreyWithOpacity50 = Color.fromARGB(128, 158, 158, 158);
+const semearLightGrey = Color.fromARGB(255, 240, 240, 240);
+const semearLightGreyWithOpacity30 = Color.fromARGB(76, 240, 240, 240);
+const semearLightGreyWithOpacity50 = Color.fromARGB(128, 240, 240, 240);
 const semearLightGreyGradient = LinearGradient(
   transform: GradientRotation(45.0),
   colors: [
@@ -47,15 +47,15 @@ const semearLightGreyGradient = LinearGradient(
 );
 
 //Grey
-const semearGrey = Color.fromARGB(255, 60, 60, 60);
+const semearGrey = Color.fromARGB(255, 30, 30, 30);
 
 //Dark Grey
-const semearDarkGrey = Color.fromARGB(255, 50, 50, 50);
+const semearDarkGrey = Color.fromARGB(255, 20, 20, 20);
 
 //Shadows
-const List<BoxShadow> boxShadowsLightGrey = [
+const List<BoxShadow> boxShadowsGrey = [
   BoxShadow(
-    color: semearLightGreyWithOpacity50,
+    color: semearGrey,
     offset: Offset(-1.0, 1.0),
     blurRadius: 1.5,
   ),

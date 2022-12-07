@@ -80,10 +80,11 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.url = const Value.absent(),
   });
   BooksCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
     required String title,
     required String url,
-  })  : title = Value(title),
+  })  : id = Value(id),
+        title = Value(title),
         url = Value(url);
   static Insertable<Book> custom({
     Expression<String>? id,
@@ -141,9 +142,7 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      clientDefault: () => const Uuid().v4());
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -167,6 +166,8 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -380,7 +381,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     this.completed = const Value.absent(),
   });
   SermonsCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
     required String bookId,
     required String date,
     required String title,
@@ -390,7 +391,8 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     required String mp3Url,
     this.downloadedMp3Path = const Value.absent(),
     this.completed = const Value.absent(),
-  })  : bookId = Value(bookId),
+  })  : id = Value(id),
+        bookId = Value(bookId),
         date = Value(date),
         title = Value(title),
         preacher = Value(preacher),
@@ -511,9 +513,7 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      clientDefault: () => const Uuid().v4());
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
   @override
   late final GeneratedColumn<String> bookId = GeneratedColumn<String>(
@@ -594,6 +594,8 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (data.containsKey('book_id')) {
       context.handle(_bookIdMeta,

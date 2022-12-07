@@ -9,13 +9,13 @@ import 'package:uuid/uuid.dart';
 part 'semear_database.g.dart';
 
 class Books extends Table {
-  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get id => text()();
   TextColumn get title => text()();
   TextColumn get url => text()();
 }
 
 class Sermons extends Table {
-  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get id => text()();
   TextColumn get bookId => text()();
   TextColumn get date => text()();
   TextColumn get title => text()();
@@ -62,6 +62,7 @@ class SemearDatabase extends _$SemearDatabase {
 
   //DELETE
   Future<void> deleteAllBooks() => delete(books).go();
+  Future<void> deleteAllSermons() => delete(sermons).go();
   Future<void> deleteAllSermonsWithBookId(String bookId) =>
       (delete(sermons)..where((sermon) => sermon.bookId.equals(bookId))).go();
 }

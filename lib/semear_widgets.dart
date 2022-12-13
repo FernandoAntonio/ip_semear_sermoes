@@ -214,25 +214,12 @@ class SemearSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: double.infinity,
-              height: 4.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5.0),
-                gradient: semearGreenAndDarkGreyGradient,
-              ),
-            ),
-            Slider(
-              label: progressBarState.current.formatDuration(),
-              divisions: progressBarState.total.inSeconds,
-              max: progressBarState.total.inSeconds.toDouble(),
-              value: progressBarState.current.inSeconds.toDouble(),
-              onChanged: onSeekChanged,
-            ),
-          ],
+        Slider(
+          label: progressBarState.current.formatDuration(),
+          divisions: progressBarState.total.inSeconds,
+          max: progressBarState.total.inSeconds.toDouble(),
+          value: progressBarState.current.inSeconds.toDouble(),
+          onChanged: onSeekChanged,
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

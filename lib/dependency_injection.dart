@@ -9,7 +9,7 @@ final getIt = GetIt.instance;
 Future<void> initDependencyInjection() async {
   getIt.registerLazySingleton<SemearDatabase>(() => SemearDatabase());
 
-  await AudioService.init(
+  final AudioPlayerHandler audioPlayerHandler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.ryanheise.myapp.channel.audio',
@@ -18,5 +18,5 @@ Future<void> initDependencyInjection() async {
     ),
   );
 
-  getIt.registerLazySingleton<AudioPlayerHandler>(() => AudioPlayerHandler());
+  getIt.registerLazySingleton<AudioPlayerHandler>(() => audioPlayerHandler);
 }

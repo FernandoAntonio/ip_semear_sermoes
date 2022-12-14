@@ -35,7 +35,7 @@ class SermonsBooksPageController extends State<BooksPage> {
         if (bookList.isEmpty) {
           var booksFromInternet = await _getBooksFromInternet();
           if (booksFromInternet.isNotEmpty) {
-            _storeAndGetBooks(booksFromInternet);
+            bookList = await _storeAndGetBooks(booksFromInternet);
           } else {
             throw Exception();
           }

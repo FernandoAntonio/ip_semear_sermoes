@@ -2,8 +2,9 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 
 import 'audio_player_handler.dart';
-import 'utils/constants.dart';
-import 'utils/extensions.dart';
+import 'constants.dart';
+import 'extensions.dart';
+import 'theme.dart';
 
 class SemearLoadingWidget extends StatelessWidget {
   const SemearLoadingWidget({Key? key}) : super(key: key);
@@ -90,26 +91,28 @@ class SemearPullToRefresh extends StatelessWidget {
 class SemearIcon extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData iconData;
+  final LinearGradient colorGradient;
 
   const SemearIcon({
     Key? key,
     required this.onPressed,
     required this.iconData,
+    this.colorGradient = semearLightGreyGradient,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: onPressed,
-      iconSize: 40.0,
+      iconSize: 30.0,
       icon: ShaderMask(
         blendMode: BlendMode.srcIn,
-        shaderCallback: (Rect bounds) => semearLightGreyGradient.createShader(bounds),
+        shaderCallback: (Rect bounds) => colorGradient.createShader(bounds),
         child: Text(
           String.fromCharCode(iconData.codePoint),
           style: TextStyle(
             fontFamily: iconData.fontFamily,
-            fontSize: 40.0,
+            fontSize: 30.0,
             shadows: boxShadowsGreen,
             height: 1,
           ),
@@ -203,23 +206,50 @@ class SemearSermonCard extends StatelessWidget {
 class SemearSlider extends StatelessWidget {
   final ProgressBarState progressBarState;
   final Function(double) onSeekChanged;
+  final int? bookmarkInSeconds;
 
   const SemearSlider({
     Key? key,
     required this.progressBarState,
     required this.onSeekChanged,
+    this.bookmarkInSeconds,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Slider(
-          label: progressBarState.current.formatDuration(),
-          divisions: progressBarState.total.inSeconds,
-          max: progressBarState.total.inSeconds.toDouble(),
-          value: progressBarState.current.inSeconds.toDouble(),
-          onChanged: onSeekChanged,
+        Column(
+          children: [
+            SizedBox(
+              height: 20.0,
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  overlayShape: SliderComponentShape.noOverlay,
+                  thumbShape: bookmarkInSeconds != null
+                      ? const CustomSliderThumbShape()
+                      : SliderComponentShape.noThumb,
+                ),
+                child: Slider(
+                  activeColor: Colors.transparent,
+                  inactiveColor: Colors.transparent,
+                  thumbColor: semearGreen,
+                  label: progressBarState.current.formatDuration(),
+                  max: progressBarState.total.inSeconds.toDouble(),
+                  value: bookmarkInSeconds?.toDouble() ?? 0.0,
+                  onChanged: (value) =>
+                      onSeekChanged(bookmarkInSeconds?.toDouble() ?? value),
+                ),
+              ),
+            ),
+            Slider(
+              label: progressBarState.current.formatDuration(),
+              max: progressBarState.total.inSeconds.toDouble(),
+              divisions: progressBarState.total.inSeconds,
+              value: progressBarState.current.inSeconds.toDouble(),
+              onChanged: onSeekChanged,
+            ),
+          ],
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

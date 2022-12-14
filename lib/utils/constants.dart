@@ -45,6 +45,14 @@ const semearLightGreyGradient = LinearGradient(
   ],
   stops: [0.5, 1.0],
 );
+const semearLightestGreyGradient = LinearGradient(
+  transform: GradientRotation(45.0),
+  colors: [
+    semearLightGreyWithOpacity30,
+    semearLightGreyWithOpacity50,
+  ],
+  stops: [0.5, 1.0],
+);
 
 //Grey
 const semearGrey = Color.fromARGB(255, 30, 30, 30);

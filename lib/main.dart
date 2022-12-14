@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'books_page.dart';
-import 'dependency_injection.dart';
+import 'pages/books_page.dart';
+import 'utils/dependency_injection.dart';
 import 'utils/theme.dart';
 
 void main() async {

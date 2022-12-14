@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
-import 'audio_player_handler.dart';
-import 'database/semear_database.dart';
-import 'dependency_injection.dart';
-import 'repository/semear_repository.dart';
-import 'semear_widgets.dart';
-import 'utils/constants.dart';
-import 'utils/widget_view.dart';
+import '../database/semear_database.dart';
+import '../repository/semear_repository.dart';
+import '../utils/audio_player_handler.dart';
+import '../utils/constants.dart';
+import '../utils/dependency_injection.dart';
+import '../utils/semear_widgets.dart';
+import '../utils/widget_view.dart';
 
 class SermonsPage extends StatefulWidget {
   final Book book;

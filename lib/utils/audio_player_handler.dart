@@ -8,7 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'database/semear_database.dart';
+import '../database/semear_database.dart';
 
 class ProgressBarState {
   ProgressBarState({

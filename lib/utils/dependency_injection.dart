@@ -3,8 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:ip_semear_sermoes/repository/semear_repository.dart';
 
+import '../database/semear_database.dart';
 import 'audio_player_handler.dart';
-import 'database/semear_database.dart';
 
 final getIt = GetIt.instance;
 

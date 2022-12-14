@@ -2,8 +2,8 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 
 import 'audio_player_handler.dart';
-import 'utils/constants.dart';
-import 'utils/extensions.dart';
+import 'constants.dart';
+import 'extensions.dart';
 
 class SemearLoadingWidget extends StatelessWidget {
   const SemearLoadingWidget({Key? key}) : super(key: key);

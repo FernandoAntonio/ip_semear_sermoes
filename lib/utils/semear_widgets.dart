@@ -104,7 +104,7 @@ class SemearIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       onPressed: onPressed,
-      iconSize: 40.0,
+      iconSize: 30.0,
       icon: ShaderMask(
         blendMode: BlendMode.srcIn,
         shaderCallback: (Rect bounds) => colorGradient.createShader(bounds),
@@ -112,7 +112,7 @@ class SemearIcon extends StatelessWidget {
           String.fromCharCode(iconData.codePoint),
           style: TextStyle(
             fontFamily: iconData.fontFamily,
-            fontSize: 40.0,
+            fontSize: 30.0,
             shadows: boxShadowsGreen,
             height: 1,
           ),

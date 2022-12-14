@@ -333,65 +333,78 @@ class _SermonsSingleBookPageView
                     bookmarkInSeconds: sermon.bookmarkInSeconds,
                   ),
                 ),
-                StreamBuilder<bool>(
-                  stream: state._audioHandler.playbackState
-                      .map((state) => state.playing)
-                      .distinct(),
-                  builder: (context, snapshot) {
-                    final playing = snapshot.data ?? false;
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    //Future download button
+                    _buildDownloadAudio(),
+                    Row(
                       children: [
-                        const SizedBox(width: 56.0),
-                        SemearIcon(
-                          iconData: Icons.replay_10,
-                          onPressed: state._onReplayXSecondsPressed,
-                        ),
-                        const SizedBox(width: 16.0),
-                        IconButton(
-                          icon: Container(
-                            height: 60.0,
-                            width: 60.0,
-                            decoration: BoxDecoration(
-                              gradient: semearGreenGradient,
-                              borderRadius: BorderRadius.circular(100.0),
-                              boxShadow: boxShadowsGrey,
-                            ),
-                            child: Icon(
-                              playing ? Icons.pause : Icons.play_arrow,
-                              size: 30.0,
-                              color: semearDarkGrey,
-                            ),
-                          ),
-                          iconSize: 60.0,
-                          onPressed:
-                              playing ? state._onPausePressed : state._onPlayPressed,
-                        ),
-                        const SizedBox(width: 16.0),
-                        SemearIcon(
-                          iconData: Icons.forward_10,
-                          onPressed: state._onForwardXSecondsPressed,
-                        ),
-                        ValueListenableBuilder<ProgressBarState>(
-                          valueListenable: state._audioHandler.progressNotifier,
-                          builder: (_, value, __) => SemearIcon(
-                            colorGradient: semearLightestGreyGradient,
-                            iconData: sermon.bookmarkInSeconds == null
-                                ? Icons.bookmark_add_outlined
-                                : Icons.bookmark_remove_outlined,
-                            onPressed: () => sermon.bookmarkInSeconds == null
-                                ? state._onBookmarkAddedPressed(
-                                    sermon.id, value.current.inSeconds)
-                                : state._onBookmarkRemovedPressed(sermon.id),
-                          ),
-                        ),
+                        _buildReplay10(),
+                        const SizedBox(width: 8.0),
+                        _buildPlayButton(),
+                        const SizedBox(width: 8.0),
+                        _buildForward10(),
                       ],
-                    );
-                  },
+                    ),
+                    _buildBookmark(sermon),
+                  ],
                 ),
               ],
             ),
           ),
         ],
+      );
+
+  Widget _buildDownloadAudio() {
+    return const SizedBox(width: 30.0);
+  }
+
+  Widget _buildReplay10() => SemearIcon(
+        iconData: Icons.replay_10,
+        onPressed: state._onReplayXSecondsPressed,
+      );
+
+  Widget _buildPlayButton() => StreamBuilder<bool>(
+        stream:
+            state._audioHandler.playbackState.map((state) => state.playing).distinct(),
+        builder: (context, snapshot) {
+          final playing = snapshot.data ?? false;
+          return IconButton(
+            icon: Container(
+              height: 55.0,
+              width: 55.0,
+              decoration: BoxDecoration(
+                gradient: semearGreenGradient,
+                borderRadius: BorderRadius.circular(100.0),
+                boxShadow: boxShadowsGrey,
+              ),
+              child: Icon(
+                playing ? Icons.pause : Icons.play_arrow,
+                size: 30.0,
+                color: semearDarkGrey,
+              ),
+            ),
+            iconSize: 60.0,
+            onPressed: playing ? state._onPausePressed : state._onPlayPressed,
+          );
+        },
+      );
+
+  Widget _buildForward10() => SemearIcon(
+        iconData: Icons.forward_10,
+        onPressed: state._onForwardXSecondsPressed,
+      );
+
+  Widget _buildBookmark(Sermon sermon) => ValueListenableBuilder<ProgressBarState>(
+        valueListenable: state._audioHandler.progressNotifier,
+        builder: (_, value, __) => SemearIcon(
+          iconData: sermon.bookmarkInSeconds == null
+              ? Icons.bookmark_add_outlined
+              : Icons.bookmark_remove_outlined,
+          onPressed: () => sermon.bookmarkInSeconds == null
+              ? state._onBookmarkAddedPressed(sermon.id, value.current.inSeconds)
+              : state._onBookmarkRemovedPressed(sermon.id),
+        ),
       );
 }

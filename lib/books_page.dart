@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
-import 'package:uuid/uuid.dart';
 
 import 'database/semear_database.dart';
 import 'dependency_injection.dart';
@@ -34,9 +33,9 @@ class SermonsBooksPageController extends State<BooksPage> {
         bookList = await _database.getAllBooks();
 
         if (bookList.isEmpty) {
-          bookList = await _getBooksFromInternet();
-          if (bookList.isNotEmpty) {
-            _storeBooks(bookList);
+          var booksFromInternet = await _getBooksFromInternet();
+          if (booksFromInternet.isNotEmpty) {
+            bookList = await _storeAndGetBooks(booksFromInternet);
           } else {
             throw Exception();
           }
@@ -44,33 +43,32 @@ class SermonsBooksPageController extends State<BooksPage> {
       } else if (fromInternet) {
         await _database.deleteAllBooks();
         await _database.deleteAllSermons();
-        bookList = await _getBooksFromInternet();
-        if (bookList.isNotEmpty) {
-          _storeBooks(bookList);
+        var booksFromInternet = await _getBooksFromInternet();
+        if (booksFromInternet.isNotEmpty) {
+          bookList = await _storeAndGetBooks(booksFromInternet);
         } else {
           throw Exception();
         }
       }
 
       return bookList;
-    } catch (e) {
+    } catch (_) {
       setState(() => _hasError = true);
       return null;
     }
   }
 
-  Future<List<Book>> _getBooksFromInternet() async {
+  Future<List<BooksCompanion>> _getBooksFromInternet() async {
     try {
       final response = await _dio.get('http://ipsemear.org/sermoes-audio/');
       final parsed = parse(response.data);
       final list = parsed.nodes[1].nodes[2].nodes[3].nodes[11].nodes[3].nodes[3].nodes[5]
           .nodes[1].nodes[7].nodes;
-      List<Book> bookList = [];
+      List<BooksCompanion> bookList = [];
 
       for (dom.Node node in list) {
         final data = node.nodes.first;
-        final book = Book(
-          id: const Uuid().v4(),
+        final book = BooksCompanion.insert(
           title: data.text ?? '',
           url: data.attributes.values.first,
         );
@@ -78,14 +76,16 @@ class SermonsBooksPageController extends State<BooksPage> {
       }
 
       return bookList;
-    } catch (e) {
+    } catch (_) {
       setState(() => _hasError = true);
       return [];
     }
   }
 
-  Future<void> _storeBooks(List<Book> bookList) async =>
-      await _database.storeAllBooks(bookList);
+  Future<List<Book>> _storeAndGetBooks(List<BooksCompanion> bookList) async {
+    await _database.storeAllBooks(bookList);
+    return await _database.getAllBooks();
+  }
 
   Future<void> _getSermonsFromBook(Book book) async => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => SermonsPage(book: book)),
@@ -133,7 +133,7 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                       padding: const EdgeInsets.all(4.0),
                       itemCount: snapshot.data!.length,
                       itemBuilder: (context, index) => AnimatedListItem(
-                        key: ValueKey<String>(snapshot.data![index].id),
+                        key: ValueKey<int>(snapshot.data![index].id),
                         index: index,
                         child: Column(
                           children: [

@@ -1,11 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:html/parser.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
 import 'database/semear_database.dart';
 import 'dependency_injection.dart';
+import 'repository/semear_repository.dart';
 import 'semear_widgets.dart';
 import 'sermons_page.dart';
 import 'utils/widget_view.dart';
@@ -18,73 +16,22 @@ class BooksPage extends StatefulWidget {
 }
 
 class SermonsBooksPageController extends State<BooksPage> {
-  late Future<List<Book>?> _pageLoader;
   late bool _hasError;
-  late Dio _dio;
+  late SemearRepository _repository;
   late SemearDatabase _database;
 
-  Future<List<Book>?> _getBookList(bool fromInternet) async {
-    setState(() => _hasError = false);
+  Stream<List<Book>> _watchAllBooks() => _database.watchAllBooks();
 
+  Future<void> _getBooksAndStore() async {
     try {
-      List<Book> bookList = [];
-
-      if (!fromInternet) {
-        bookList = await _database.getAllBooks();
-
-        if (bookList.isEmpty) {
-          var booksFromInternet = await _getBooksFromInternet();
-          if (booksFromInternet.isNotEmpty) {
-            bookList = await _storeAndGetBooks(booksFromInternet);
-          } else {
-            throw Exception();
-          }
-        }
-      } else if (fromInternet) {
-        await _database.deleteAllBooks();
-        await _database.deleteAllSermons();
-        var booksFromInternet = await _getBooksFromInternet();
-        if (booksFromInternet.isNotEmpty) {
-          bookList = await _storeAndGetBooks(booksFromInternet);
-        } else {
-          throw Exception();
-        }
+      final booksFromInternet = await _repository.getBooks();
+      if (booksFromInternet.isNotEmpty) {
+        await _database.storeAllBooks(booksFromInternet);
       }
-
-      return bookList;
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('$e\n$stack');
       setState(() => _hasError = true);
-      return null;
     }
-  }
-
-  Future<List<BooksCompanion>> _getBooksFromInternet() async {
-    try {
-      final response = await _dio.get('http://ipsemear.org/sermoes-audio/');
-      final parsed = parse(response.data);
-      final list = parsed.nodes[1].nodes[2].nodes[3].nodes[11].nodes[3].nodes[3].nodes[5]
-          .nodes[1].nodes[7].nodes;
-      List<BooksCompanion> bookList = [];
-
-      for (dom.Node node in list) {
-        final data = node.nodes.first;
-        final book = BooksCompanion.insert(
-          title: data.text ?? '',
-          url: data.attributes.values.first,
-        );
-        bookList.add(book);
-      }
-
-      return bookList;
-    } catch (_) {
-      setState(() => _hasError = true);
-      return [];
-    }
-  }
-
-  Future<List<Book>> _storeAndGetBooks(List<BooksCompanion> bookList) async {
-    await _database.storeAllBooks(bookList);
-    return await _database.getAllBooks();
   }
 
   Future<void> _getSermonsFromBook(Book book) async => Navigator.of(context).push(
@@ -93,16 +40,14 @@ class SermonsBooksPageController extends State<BooksPage> {
 
   Future<void> _onBookPressed(Book book) async => await _getSermonsFromBook(book);
 
-  Future<void> _onReloadData() => _pageLoader = _getBookList(true);
+  Future<void> _onReloadData() async => _getBooksAndStore();
 
   @override
   void initState() {
     super.initState();
-    _dio = Dio(BaseOptions(connectTimeout: 15000, receiveTimeout: 15000));
-    _hasError = false;
+    _repository = getIt<SemearRepository>();
     _database = getIt<SemearDatabase>();
-
-    _pageLoader = _getBookList(false);
+    _hasError = false;
   }
 
   @override
@@ -123,10 +68,10 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
           )),
       body: state._hasError
           ? SemearErrorWidget(state._onReloadData)
-          : FutureBuilder<List<Book>?>(
-              future: state._pageLoader,
+          : StreamBuilder<List<Book>?>(
+              stream: state._watchAllBooks(),
               builder: (context, snapshot) {
-                if (snapshot.data != null && snapshot.hasData) {
+                if (snapshot.data != null && snapshot.data!.isNotEmpty) {
                   return LiquidPullToRefresh(
                     onRefresh: state._onReloadData,
                     child: ListView.builder(
@@ -148,6 +93,9 @@ class _SermonsBooksPageView extends WidgetView<BooksPage, SermonsBooksPageContro
                       ),
                     ),
                   );
+                } else if (snapshot.data != null && snapshot.data!.isEmpty) {
+                  state._onReloadData();
+                  return const SemearLoadingWidget();
                 } else {
                   return const SemearLoadingWidget();
                 }

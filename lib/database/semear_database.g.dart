@@ -215,6 +215,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
   final String series;
   final String passage;
   final String mp3Url;
+  final int? bookmarkInSeconds;
   final String? downloadedMp3Path;
   final bool completed;
   const Sermon(
@@ -226,6 +227,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       required this.series,
       required this.passage,
       required this.mp3Url,
+      this.bookmarkInSeconds,
       this.downloadedMp3Path,
       required this.completed});
   @override
@@ -239,6 +241,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
     map['series'] = Variable<String>(series);
     map['passage'] = Variable<String>(passage);
     map['mp3_url'] = Variable<String>(mp3Url);
+    if (!nullToAbsent || bookmarkInSeconds != null) {
+      map['bookmark_in_seconds'] = Variable<int>(bookmarkInSeconds);
+    }
     if (!nullToAbsent || downloadedMp3Path != null) {
       map['downloaded_mp3_path'] = Variable<String>(downloadedMp3Path);
     }
@@ -256,6 +261,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       series: Value(series),
       passage: Value(passage),
       mp3Url: Value(mp3Url),
+      bookmarkInSeconds: bookmarkInSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bookmarkInSeconds),
       downloadedMp3Path: downloadedMp3Path == null && nullToAbsent
           ? const Value.absent()
           : Value(downloadedMp3Path),
@@ -275,6 +283,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       series: serializer.fromJson<String>(json['series']),
       passage: serializer.fromJson<String>(json['passage']),
       mp3Url: serializer.fromJson<String>(json['mp3Url']),
+      bookmarkInSeconds: serializer.fromJson<int?>(json['bookmarkInSeconds']),
       downloadedMp3Path:
           serializer.fromJson<String?>(json['downloadedMp3Path']),
       completed: serializer.fromJson<bool>(json['completed']),
@@ -292,6 +301,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       'series': serializer.toJson<String>(series),
       'passage': serializer.toJson<String>(passage),
       'mp3Url': serializer.toJson<String>(mp3Url),
+      'bookmarkInSeconds': serializer.toJson<int?>(bookmarkInSeconds),
       'downloadedMp3Path': serializer.toJson<String?>(downloadedMp3Path),
       'completed': serializer.toJson<bool>(completed),
     };
@@ -306,6 +316,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           String? series,
           String? passage,
           String? mp3Url,
+          Value<int?> bookmarkInSeconds = const Value.absent(),
           Value<String?> downloadedMp3Path = const Value.absent(),
           bool? completed}) =>
       Sermon(
@@ -317,6 +328,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
         series: series ?? this.series,
         passage: passage ?? this.passage,
         mp3Url: mp3Url ?? this.mp3Url,
+        bookmarkInSeconds: bookmarkInSeconds.present
+            ? bookmarkInSeconds.value
+            : this.bookmarkInSeconds,
         downloadedMp3Path: downloadedMp3Path.present
             ? downloadedMp3Path.value
             : this.downloadedMp3Path,
@@ -333,6 +347,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           ..write('series: $series, ')
           ..write('passage: $passage, ')
           ..write('mp3Url: $mp3Url, ')
+          ..write('bookmarkInSeconds: $bookmarkInSeconds, ')
           ..write('downloadedMp3Path: $downloadedMp3Path, ')
           ..write('completed: $completed')
           ..write(')'))
@@ -341,7 +356,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
 
   @override
   int get hashCode => Object.hash(id, bookId, date, title, preacher, series,
-      passage, mp3Url, downloadedMp3Path, completed);
+      passage, mp3Url, bookmarkInSeconds, downloadedMp3Path, completed);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -354,6 +369,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           other.series == this.series &&
           other.passage == this.passage &&
           other.mp3Url == this.mp3Url &&
+          other.bookmarkInSeconds == this.bookmarkInSeconds &&
           other.downloadedMp3Path == this.downloadedMp3Path &&
           other.completed == this.completed);
 }
@@ -367,6 +383,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
   final Value<String> series;
   final Value<String> passage;
   final Value<String> mp3Url;
+  final Value<int?> bookmarkInSeconds;
   final Value<String?> downloadedMp3Path;
   final Value<bool> completed;
   const SermonsCompanion({
@@ -378,6 +395,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     this.series = const Value.absent(),
     this.passage = const Value.absent(),
     this.mp3Url = const Value.absent(),
+    this.bookmarkInSeconds = const Value.absent(),
     this.downloadedMp3Path = const Value.absent(),
     this.completed = const Value.absent(),
   });
@@ -390,6 +408,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     required String series,
     required String passage,
     required String mp3Url,
+    this.bookmarkInSeconds = const Value.absent(),
     this.downloadedMp3Path = const Value.absent(),
     this.completed = const Value.absent(),
   })  : bookId = Value(bookId),
@@ -408,6 +427,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     Expression<String>? series,
     Expression<String>? passage,
     Expression<String>? mp3Url,
+    Expression<int>? bookmarkInSeconds,
     Expression<String>? downloadedMp3Path,
     Expression<bool>? completed,
   }) {
@@ -420,6 +440,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       if (series != null) 'series': series,
       if (passage != null) 'passage': passage,
       if (mp3Url != null) 'mp3_url': mp3Url,
+      if (bookmarkInSeconds != null) 'bookmark_in_seconds': bookmarkInSeconds,
       if (downloadedMp3Path != null) 'downloaded_mp3_path': downloadedMp3Path,
       if (completed != null) 'completed': completed,
     });
@@ -434,6 +455,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       Value<String>? series,
       Value<String>? passage,
       Value<String>? mp3Url,
+      Value<int?>? bookmarkInSeconds,
       Value<String?>? downloadedMp3Path,
       Value<bool>? completed}) {
     return SermonsCompanion(
@@ -445,6 +467,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       series: series ?? this.series,
       passage: passage ?? this.passage,
       mp3Url: mp3Url ?? this.mp3Url,
+      bookmarkInSeconds: bookmarkInSeconds ?? this.bookmarkInSeconds,
       downloadedMp3Path: downloadedMp3Path ?? this.downloadedMp3Path,
       completed: completed ?? this.completed,
     );
@@ -477,6 +500,9 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     if (mp3Url.present) {
       map['mp3_url'] = Variable<String>(mp3Url.value);
     }
+    if (bookmarkInSeconds.present) {
+      map['bookmark_in_seconds'] = Variable<int>(bookmarkInSeconds.value);
+    }
     if (downloadedMp3Path.present) {
       map['downloaded_mp3_path'] = Variable<String>(downloadedMp3Path.value);
     }
@@ -497,6 +523,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
           ..write('series: $series, ')
           ..write('passage: $passage, ')
           ..write('mp3Url: $mp3Url, ')
+          ..write('bookmarkInSeconds: $bookmarkInSeconds, ')
           ..write('downloadedMp3Path: $downloadedMp3Path, ')
           ..write('completed: $completed')
           ..write(')'))
@@ -555,6 +582,12 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
   late final GeneratedColumn<String> mp3Url = GeneratedColumn<String>(
       'mp3_url', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _bookmarkInSecondsMeta =
+      const VerificationMeta('bookmarkInSeconds');
+  @override
+  late final GeneratedColumn<int> bookmarkInSeconds = GeneratedColumn<int>(
+      'bookmark_in_seconds', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _downloadedMp3PathMeta =
       const VerificationMeta('downloadedMp3Path');
   @override
@@ -584,6 +617,7 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
         series,
         passage,
         mp3Url,
+        bookmarkInSeconds,
         downloadedMp3Path,
         completed
       ];
@@ -641,6 +675,12 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
     } else if (isInserting) {
       context.missing(_mp3UrlMeta);
     }
+    if (data.containsKey('bookmark_in_seconds')) {
+      context.handle(
+          _bookmarkInSecondsMeta,
+          bookmarkInSeconds.isAcceptableOrUnknown(
+              data['bookmark_in_seconds']!, _bookmarkInSecondsMeta));
+    }
     if (data.containsKey('downloaded_mp3_path')) {
       context.handle(
           _downloadedMp3PathMeta,
@@ -676,6 +716,8 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
           .read(DriftSqlType.string, data['${effectivePrefix}passage'])!,
       mp3Url: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}mp3_url'])!,
+      bookmarkInSeconds: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}bookmark_in_seconds']),
       downloadedMp3Path: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}downloaded_mp3_path']),
       completed: attachedDatabase.typeMapping

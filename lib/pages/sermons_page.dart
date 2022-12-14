@@ -330,6 +330,7 @@ class _SermonsSingleBookPageView
                   builder: (_, value, __) => SemearSlider(
                     progressBarState: value,
                     onSeekChanged: state._onSeekChanged,
+                    bookmarkInSeconds: sermon.bookmarkInSeconds,
                   ),
                 ),
                 StreamBuilder<bool>(
@@ -341,18 +342,7 @@ class _SermonsSingleBookPageView
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        ValueListenableBuilder<ProgressBarState>(
-                          valueListenable: state._audioHandler.progressNotifier,
-                          builder: (_, value, __) => SemearIcon(
-                            iconData: sermon.bookmarkInSeconds == null
-                                ? Icons.bookmark_add_outlined
-                                : Icons.bookmark_remove_outlined,
-                            onPressed: () => sermon.bookmarkInSeconds == null
-                                ? state._onBookmarkAddedPressed(
-                                    sermon.id, value.current.inSeconds)
-                                : state._onBookmarkRemovedPressed(sermon.id),
-                          ),
-                        ),
+                        const SizedBox(width: 56.0),
                         SemearIcon(
                           iconData: Icons.replay_10,
                           onPressed: state._onReplayXSecondsPressed,
@@ -382,13 +372,19 @@ class _SermonsSingleBookPageView
                           iconData: Icons.forward_10,
                           onPressed: state._onForwardXSecondsPressed,
                         ),
-                        sermon.bookmarkInSeconds != null
-                            ? SemearIcon(
-                                iconData: Icons.bookmark_added,
-                                onPressed: () => state
-                                    ._onSeekChanged(sermon.bookmarkInSeconds!.toDouble()),
-                              )
-                            : const SizedBox(width: 40.0),
+                        ValueListenableBuilder<ProgressBarState>(
+                          valueListenable: state._audioHandler.progressNotifier,
+                          builder: (_, value, __) => SemearIcon(
+                            colorGradient: semearLightestGreyGradient,
+                            iconData: sermon.bookmarkInSeconds == null
+                                ? Icons.bookmark_add_outlined
+                                : Icons.bookmark_remove_outlined,
+                            onPressed: () => sermon.bookmarkInSeconds == null
+                                ? state._onBookmarkAddedPressed(
+                                    sermon.id, value.current.inSeconds)
+                                : state._onBookmarkRemovedPressed(sermon.id),
+                          ),
+                        ),
                       ],
                     );
                   },

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'constants.dart';
@@ -144,6 +146,143 @@ class GradientRectSliderTrackShape extends SliderTrackShape with BaseSliderTrack
             (textDirection == TextDirection.rtl) ? activeTrackRadius : trackRadius,
       ),
       rightTrackPaint,
+    );
+  }
+}
+
+class CustomSliderThumbShape extends SliderComponentShape {
+  final double thumbSize;
+
+  const CustomSliderThumbShape({this.thumbSize = 10.0});
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size.fromWidth(thumbSize);
+  }
+
+  @override
+  Future<void> paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required Size sizeWithOverflow,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double textScaleFactor,
+    required double value,
+  }) async {
+    assert(sliderTheme.disabledThumbColor != null);
+    assert(sliderTheme.thumbColor != null);
+
+    Path path = Path();
+    const Size size = Size(7.11201, 10.4987);
+    final double xScaling = 1.2 / size.width;
+    final double yScaling = 1.7 / size.height;
+    final double xOffset = center.dx - size.width;
+
+    path.lineTo(xOffset + 1.06 * xScaling, 8.12 * yScaling);
+    path.cubicTo(
+      xOffset + 0.97 * xScaling,
+      2.38 * yScaling,
+      xOffset + 4.69 * xScaling,
+      0.84 * yScaling,
+      xOffset + 8.5 * xScaling,
+      0.75 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 8.5 * xScaling,
+      0.75 * yScaling,
+      xOffset + 74.42 * xScaling,
+      0.2 * yScaling,
+      xOffset + 74.87 * xScaling,
+      0.16 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 80.91 * xScaling,
+      0.2 * yScaling,
+      xOffset + 82.69 * xScaling,
+      3.98 * yScaling,
+      xOffset + 82.75 * xScaling,
+      8 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 82.75 * xScaling,
+      8 * yScaling,
+      xOffset + 83.03 * xScaling,
+      80.12 * yScaling,
+      xOffset + 82.96 * xScaling,
+      80.74 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 83.25 * xScaling,
+      86.86 * yScaling,
+      xOffset + 81 * xScaling,
+      88.25 * yScaling,
+      xOffset + 81 * xScaling,
+      88.25 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 81 * xScaling,
+      88.25 * yScaling,
+      xOffset + 46.98 * xScaling,
+      122.33 * yScaling,
+      xOffset + 46.75 * xScaling,
+      122.5 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 43.98 * xScaling,
+      124.6 * yScaling,
+      xOffset + 40.42 * xScaling,
+      124.38 * yScaling,
+      xOffset + 38.75 * xScaling,
+      122.75 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 38.75 * xScaling,
+      122.5 * yScaling,
+      xOffset + 4.16 * xScaling,
+      88.31 * yScaling,
+      xOffset + 3.89 * xScaling,
+      88.04 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 2.49 * xScaling,
+      86.78 * yScaling,
+      xOffset + 1.02 * xScaling,
+      84.72 * yScaling,
+      xOffset + 0.98 * xScaling,
+      82.22 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 1.05 * xScaling,
+      81.91 * yScaling,
+      xOffset + 1.06 * xScaling,
+      8.78 * yScaling,
+      xOffset + 1.06 * xScaling,
+      8.12 * yScaling,
+    );
+    path.cubicTo(
+      xOffset + 1.06 * xScaling,
+      8.12 * yScaling,
+      xOffset + 1.06 * xScaling,
+      8.12 * yScaling,
+      xOffset + 1.06 * xScaling,
+      8.12 * yScaling,
+    );
+
+    final Canvas canvas = context.canvas;
+    final ColorTween colorTween = ColorTween(
+      begin: sliderTheme.disabledThumbColor,
+      end: sliderTheme.thumbColor,
+    );
+
+    canvas.drawPath(
+      path,
+      Paint()..color = colorTween.evaluate(enableAnimation)!,
     );
   }
 }

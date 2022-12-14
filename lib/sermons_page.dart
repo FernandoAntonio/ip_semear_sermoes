@@ -5,7 +5,6 @@ import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
-import 'package:uuid/uuid.dart';
 
 import 'audio_player_handler.dart';
 import 'database/semear_database.dart';
@@ -43,31 +42,31 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
         sermonList = await _database.getAllSermonsFromBookId(widget.book.id);
 
         if (sermonList.isEmpty || sermonList.first.bookId != widget.book.id) {
-          sermonList = await _getSermonsFromInternet();
-          if (sermonList.isNotEmpty) {
-            _storeSermons(sermonList);
+          var sermonsFromInternet = await _getSermonsFromInternet();
+          if (sermonsFromInternet.isNotEmpty) {
+            sermonList = await _storeAndGetSermons(sermonsFromInternet);
           } else {
             throw Exception();
           }
         }
       } else if (fromInternet) {
         await _database.deleteAllSermonsWithBookId(widget.book.id);
-        sermonList = await _getSermonsFromInternet();
-        if (sermonList.isNotEmpty) {
-          _storeSermons(sermonList);
+        var sermonsFromInternet = await _getSermonsFromInternet();
+        if (sermonsFromInternet.isNotEmpty) {
+          sermonList = await _storeAndGetSermons(sermonsFromInternet);
         } else {
           throw Exception();
         }
       }
 
       return sermonList;
-    } catch (e) {
+    } catch (_) {
       setState(() => _hasError = true);
       return null;
     }
   }
 
-  Future<List<Sermon>> _getSermonsFromInternet() async {
+  Future<List<SermonsCompanion>> _getSermonsFromInternet() async {
     //Get data from page
     late dom.Node bookSermons;
     try {
@@ -76,7 +75,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
       bookSermons =
           parsed.nodes[1].nodes[2].nodes[3].nodes[11].nodes[3].nodes[3].nodes[5].nodes[3];
     } catch (_) {
-      _hasError = true;
+      setState(() => _hasError = true);
     }
 
     //Pagination
@@ -91,7 +90,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
 
     final nodes = bookSermons;
     final List<dom.Node> sermonNodes = [];
-    final List<Sermon> sermons = [];
+    final List<SermonsCompanion> sermons = [];
 
     try {
       if (paginationSize > 1) {
@@ -115,8 +114,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
       }
 
       for (dom.Node node in sermonNodes) {
-        final sermon = Sermon(
-          id: const Uuid().v4(),
+        final sermon = SermonsCompanion.insert(
           bookId: widget.book.id,
           date: node.nodes[1].nodes[0].text?.trim() ?? '',
           title: node.nodes[3].nodes[0].nodes[0].text?.trim() ?? '',
@@ -124,19 +122,20 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
           series: node.nodes[8].text?.replaceAll('|', '').trim() ?? '',
           passage: node.nodes[10].text?.trim() ?? '',
           mp3Url: node.nodes[11].nodes[2].attributes['href'].toString(),
-          completed: false,
         );
         sermons.add(sermon);
       }
     } catch (_) {
-      _hasError = true;
+      setState(() => _hasError = true);
     }
 
     return sermons.reversed.toList();
   }
 
-  Future<void> _storeSermons(List<Sermon> sermonList) async =>
-      await _database.storeAllSermons(sermonList);
+  Future<List<Sermon>> _storeAndGetSermons(List<SermonsCompanion> sermonList) async {
+    await _database.storeAllSermons(sermonList);
+    return _database.getAllSermonsFromBookId(widget.book.id);
+  }
 
   void _onPlayPressed() => _audioHandler.play();
 

@@ -44,31 +44,36 @@ class SemearDatabase extends _$SemearDatabase {
   }
 
   //CREATE
-  Future<void> storeAllBooks(List<BooksCompanion> bookList) async {
+  Future<void> storeOrUpdateAllBooks(List<BooksCompanion> bookList) async {
     for (BooksCompanion bookCompanion in bookList) {
-      final book = await (select(books)
+      final bookList = await (select(books)
             ..where((b) => b.title.equals(bookCompanion.title.value))
             ..where((s) => s.url.equals(bookCompanion.url.value)))
-          .getSingleOrNull();
-      if (book != null) {
-        await update(books).replace(book);
-      } else {
+          .get();
+      if (bookList.isNotEmpty && bookList.length == 1) {
+        await update(books).replace(bookList.first);
+      } else if (bookList.isEmpty) {
         await into(books).insert(bookCompanion);
+      } else {
+        await deleteAllBooks();
+        await deleteAllSermons();
       }
     }
   }
 
-  Future<void> storeAllSermons(List<SermonsCompanion> sermonList) async {
+  Future<void> storeOrUpdateAllSermons(List<SermonsCompanion> sermonList) async {
     for (SermonsCompanion sermonCompanion in sermonList) {
-      final sermon = await (select(sermons)
+      final sermonList = await (select(sermons)
             ..where((s) => s.bookId.equals(sermonCompanion.bookId.value))
             ..where((s) => s.title.equals(sermonCompanion.title.value))
             ..where((s) => s.mp3Url.equals(sermonCompanion.mp3Url.value)))
-          .getSingleOrNull();
-      if (sermon != null) {
-        await update(sermons).replace(sermon);
-      } else {
+          .get();
+      if (sermonList.isNotEmpty && sermonList.length == 1) {
+        await update(sermons).replace(sermonList.first);
+      } else if (sermonList.isEmpty) {
         await into(sermons).insert(sermonCompanion);
+      } else {
+        await deleteAllSermons();
       }
     }
   }

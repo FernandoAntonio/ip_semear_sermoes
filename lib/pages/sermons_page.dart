@@ -187,14 +187,26 @@ class _SermonsSingleBookPageView
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      sermon.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                        color: semearOrange,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          sermon.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0,
+                            color: semearOrange,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4.0),
+                        sermon.bookmarkInSeconds != null
+                            ? const Icon(
+                                Icons.bookmark,
+                                size: 15.0,
+                                color: semearGreen,
+                              )
+                            : const SizedBox.shrink(),
+                      ],
                     ),
                     const SizedBox(height: 8.0),
                     Text(
@@ -230,13 +242,25 @@ class _SermonsSingleBookPageView
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              sermon.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.0,
-                                color: semearOrange,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  sermon.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.0,
+                                    color: semearOrange,
+                                  ),
+                                ),
+                                const SizedBox(width: 4.0),
+                                sermon.bookmarkInSeconds != null
+                                    ? const Icon(
+                                        Icons.bookmark,
+                                        size: 15.0,
+                                        color: semearGreen,
+                                      )
+                                    : const SizedBox.shrink(),
+                              ],
                             ),
                             const SizedBox(height: 8.0),
                             Text(

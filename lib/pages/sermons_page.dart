@@ -35,7 +35,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     try {
       final sermonsFromInternet = await _repository.getSermonsFromBook(widget.book);
       if (sermonsFromInternet.isNotEmpty) {
-        await _database.storeAllSermons(sermonsFromInternet);
+        await _database.storeOrUpdateAllSermons(sermonsFromInternet);
       }
     } catch (e, stack) {
       debugPrint('$e\n$stack');
@@ -106,7 +106,10 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     setState(() => _isLoadingAudio = false);
   }
 
-  Future<void> _onReloadData() async => _getSermonsAndStore();
+  Future<void> _onReloadData() async {
+    setState(() => _hasError = false);
+    return _getSermonsAndStore();
+  }
 
   @override
   void initState() {
@@ -166,7 +169,7 @@ class _SermonsSingleBookPageView
                       ),
                     );
                   } else if (snapshot.data != null && snapshot.data!.isEmpty) {
-                    state._onReloadData();
+                    state._getSermonsAndStore();
                     return const SemearLoadingWidget();
                   } else {
                     return const SemearLoadingWidget();

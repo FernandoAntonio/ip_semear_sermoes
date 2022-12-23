@@ -10,7 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  audio_service: ^0.18.7
+  audio_service: ^0.18.8
+  auto_scroll_text: ^0.0.6
   dio: ^4.0.6
   drift: ^2.3.0
   expandable: ^5.0.1
@@ -23,12 +24,13 @@ dependencies:
   path_provider: ^2.0.11
   permission_handler: ^10.2.0
   sqlite3_flutter_libs: ^0.5.12
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.1
   drift_dev: ^2.3.3
-  build_runner: ^2.3.2
+  build_runner: ^2.3.3
 
 flutter:
   uses-material-design: true

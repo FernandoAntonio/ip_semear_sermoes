@@ -1,6 +1,8 @@
+import 'package:auto_scroll_text/auto_scroll_text.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 
+import '../database/semear_database.dart';
 import 'audio_player_handler.dart';
 import 'constants.dart';
 import 'extensions.dart';
@@ -139,7 +141,7 @@ class SemearBookCard extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         child: Container(
-          decoration: const BoxDecoration(gradient: semearOrangeGradient),
+          decoration: const BoxDecoration(gradient: semearTransparentOrangeGradient),
           padding: const EdgeInsets.all(16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -189,15 +191,209 @@ class SemearSermonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: const BoxDecoration(gradient: semearOrangeGradient),
-        child: ExpandableNotifier(
-          child: Expandable(
-            controller: controller,
-            collapsed: collapsed,
-            expanded: expanded,
-          ),
+      child: ExpandableNotifier(
+        child: Expandable(
+          controller: controller,
+          collapsed: collapsed,
+          expanded: expanded,
         ),
+      ),
+    );
+  }
+}
+
+class SemearCollapsedSermonCard extends StatelessWidget {
+  final Sermon sermon;
+  final void Function() onPressed;
+  final Function(bool completed) onCheckboxPressed;
+
+  const SemearCollapsedSermonCard({
+    Key? key,
+    required this.sermon,
+    required this.onPressed,
+    required this.onCheckboxPressed,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          gradient: sermon.completed
+              ? semearTransparentGreenGradient
+              : semearTransparentOrangeGradient),
+      child: Row(
+        children: [
+          const SizedBox(width: 8.0),
+          Checkbox(
+            value: sermon.completed,
+            onChanged: (value) => onCheckboxPressed(value ?? false),
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: onPressed,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 240.0,
+                              child: AutoScrollText(
+                                sermon.title,
+                                intervalSpaces: 12,
+                                velocity: const Velocity(pixelsPerSecond: Offset(50, 0)),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16.0,
+                                  color: sermon.completed ? semearGreen : semearOrange,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4.0),
+                            sermon.bookmarkInSeconds != null
+                                ? const Icon(
+                                    Icons.bookmark,
+                                    size: 15.0,
+                                    color: semearGreen,
+                                  )
+                                : const SizedBox.shrink(),
+                          ],
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          sermon.passage,
+                          style: const TextStyle(color: semearLightGrey),
+                        ),
+                      ],
+                    ),
+                    const Icon(
+                      Icons.arrow_drop_down,
+                      color: semearLightGrey,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SemearExpandedSermonCard extends StatelessWidget {
+  final Sermon sermon;
+  final void Function() onPressed;
+  final Function(bool completed) onCheckboxPressed;
+  final Widget playerWidget;
+
+  const SemearExpandedSermonCard({
+    Key? key,
+    required this.sermon,
+    required this.onPressed,
+    required this.onCheckboxPressed,
+    required this.playerWidget,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          gradient: sermon.completed
+              ? semearTransparentGreenGradient
+              : semearTransparentOrangeGradient),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(width: 8.0),
+              Padding(
+                padding: const EdgeInsets.only(top: 13.0),
+                child: Checkbox(
+                  value: sermon.completed,
+                  onChanged: (value) => onCheckboxPressed(value ?? false),
+                ),
+              ),
+              Expanded(
+                child: InkWell(
+                  onTap: onPressed,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 240.0,
+                                  child: AutoScrollText(
+                                    sermon.title,
+                                    intervalSpaces: 12,
+                                    velocity:
+                                        const Velocity(pixelsPerSecond: Offset(50, 0)),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16.0,
+                                      color:
+                                          sermon.completed ? semearGreen : semearOrange,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4.0),
+                                sermon.bookmarkInSeconds != null
+                                    ? const Icon(
+                                        Icons.bookmark,
+                                        size: 15.0,
+                                        color: semearGreen,
+                                      )
+                                    : const SizedBox.shrink(),
+                              ],
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              sermon.passage,
+                              style: const TextStyle(color: semearLightGrey),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              'Pregador: ${sermon.preacher}',
+                              style: const TextStyle(color: semearLightGrey),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              sermon.date,
+                              style: const TextStyle(color: semearLightGrey),
+                            ),
+                          ],
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 13.0),
+                          child: Icon(
+                            Icons.arrow_drop_up,
+                            color: semearLightGrey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          playerWidget,
+        ],
       ),
     );
   }

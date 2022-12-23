@@ -15,13 +15,13 @@ Também conta com reprodução em segundo plano e controle de pausa e parada na 
 
 # Roadmap
 
-1.  ☑ Revamp the UI
-2.  ☑ Store books in Drift Database
-3.  ☑ Pull to refresh data and save into Database
-4.  ☑ Add dependency injection
-5.  ☑ Store sermons in Drift Database
-6.  ☑ Add animated lists
-7.  ☑ Add audio visualizer
-8.  ☐ Download sermons mp3
-9.  ☐ Save progress
-10. ☐ Store user preferences (e.g. replay or forward 5, 10 or 30 seconds)
+1.  ☑ Atualizar a interface
+2.  ☑ Armazenar livros no Banco de Dados Drift
+3.  ☑ Adicionar "Puxe para atualizar" para atualizar dados no banco de dados
+4.  ☑ Adicionar injeção de dependências
+5.  ☑ Armazenar sermões no Banco de Dados Drift
+6.  ☑ Adicionar lista animada
+7.  ☑ Adicionar visualizador de áudio
+8.  ☐ Baixar .mp3 dos sermões
+9.  ☑ Salvar o progresso do usuário
+10. ☐ Armazenar preferências do usuário (e.g. voltar ou avançar 5 segundos, 10 segundos , 30 segundos ou tempo personalizável)

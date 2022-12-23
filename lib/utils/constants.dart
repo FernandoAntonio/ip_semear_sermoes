@@ -20,11 +20,19 @@ const semearGreenAndDarkGreyGradient = LinearGradient(
     semearDarkGrey,
   ],
 );
+const semearTransparentGreenGradient = LinearGradient(
+  transform: GradientRotation(45.0),
+  colors: [
+    Colors.transparent,
+    semearGreenWithOpacity30,
+  ],
+  stops: [0.5, 1.0],
+);
 
 //Orange
 const semearOrange = Color.fromARGB(255, 196, 115, 110);
 const semearOrangeWithOpacity30 = Color.fromARGB(76, 196, 115, 110);
-const semearOrangeGradient = LinearGradient(
+const semearTransparentOrangeGradient = LinearGradient(
   transform: GradientRotation(45.0),
   colors: [
     Colors.transparent,

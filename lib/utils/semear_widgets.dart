@@ -241,12 +241,18 @@ class SemearCollapsedSermonCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
+                            sermon.bookmarkInSeconds != null
+                                ? const Icon(
+                                    Icons.bookmark,
+                                    size: 15.0,
+                                    color: semearGreen,
+                                  )
+                                : const SizedBox.shrink(),
+                            const SizedBox(width: 4.0),
                             SizedBox(
                               width: 240.0,
-                              child: AutoScrollText(
+                              child: Text(
                                 sermon.title,
-                                intervalSpaces: 12,
-                                velocity: const Velocity(pixelsPerSecond: Offset(50, 0)),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16.0,
@@ -255,14 +261,6 @@ class SemearCollapsedSermonCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 4.0),
-                            sermon.bookmarkInSeconds != null
-                                ? const Icon(
-                                    Icons.bookmark,
-                                    size: 15.0,
-                                    color: semearGreen,
-                                  )
-                                : const SizedBox.shrink(),
                           ],
                         ),
                         const SizedBox(height: 8.0),
@@ -335,13 +333,22 @@ class SemearExpandedSermonCard extends StatelessWidget {
                           children: [
                             Row(
                               children: [
+                                sermon.bookmarkInSeconds != null
+                                    ? const Icon(
+                                        Icons.bookmark,
+                                        size: 15.0,
+                                        color: semearGreen,
+                                      )
+                                    : const SizedBox.shrink(),
+                                const SizedBox(width: 4.0),
                                 SizedBox(
                                   width: 240.0,
                                   child: AutoScrollText(
                                     sermon.title,
-                                    intervalSpaces: 12,
+                                    pauseBetween: const Duration(seconds: 3),
+                                    mode: AutoScrollTextMode.bouncing,
                                     velocity:
-                                        const Velocity(pixelsPerSecond: Offset(50, 0)),
+                                        const Velocity(pixelsPerSecond: Offset(30, 0)),
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16.0,
@@ -351,14 +358,6 @@ class SemearExpandedSermonCard extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 4.0),
-                                sermon.bookmarkInSeconds != null
-                                    ? const Icon(
-                                        Icons.bookmark,
-                                        size: 15.0,
-                                        color: semearGreen,
-                                      )
-                                    : const SizedBox.shrink(),
                               ],
                             ),
                             const SizedBox(height: 8.0),

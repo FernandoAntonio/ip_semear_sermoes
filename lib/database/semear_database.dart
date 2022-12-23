@@ -79,13 +79,13 @@ class SemearDatabase extends _$SemearDatabase {
       (select(sermons)..where((sermon) => sermon.bookId.equals(bookId))).watch();
 
   //UPDATE
-  Future<void> addBookmarkToSermon(int sermonId, int bookmarkInSeconds) =>
+  Future<void> updateSermonBookmark(int sermonId, [int? bookmarkInSeconds]) =>
       (update(sermons)..where((sermon) => sermon.id.equals(sermonId)))
           .write(SermonsCompanion(bookmarkInSeconds: Value(bookmarkInSeconds)));
 
-  Future<void> removeBookmarkFromSermon(int sermonId) =>
+  Future<void> updateSermonCompleted(int sermonId, bool completed) =>
       (update(sermons)..where((sermon) => sermon.id.equals(sermonId)))
-          .write(const SermonsCompanion(bookmarkInSeconds: Value(null)));
+          .write(SermonsCompanion(completed: Value(completed)));
 
   //DELETE
   Future<void> deleteAllBooks() => delete(books).go();

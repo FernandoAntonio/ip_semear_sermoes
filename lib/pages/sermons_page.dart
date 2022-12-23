@@ -53,10 +53,10 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
   void _stopAudio() => _audioHandler.stop();
 
   void _onBookmarkAddedPressed(int sermonId, int bookmarkInSeconds) =>
-      _database.addBookmarkToSermon(sermonId, bookmarkInSeconds);
+      _database.updateSermonBookmark(sermonId, bookmarkInSeconds);
 
   void _onBookmarkRemovedPressed(int sermonId) =>
-      _database.removeBookmarkFromSermon(sermonId);
+      _database.updateSermonBookmark(sermonId);
 
   void _onReplayXSecondsPressed() {
     final finalDuration =
@@ -97,6 +97,9 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
       }
     }
   }
+
+  void _setSermonCompleted(int sermonId, bool completed) =>
+      _database.updateSermonCompleted(sermonId, completed);
 
   Future<void> _loadAudio(Sermon sermon) async {
     setState(() => _isLoadingAudio = true);
@@ -177,98 +180,19 @@ class _SermonsSingleBookPageView
     );
   }
 
-  Widget _buildCollapsed(Sermon sermon, int index) => InkWell(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      sermon.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                        color: semearOrange,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      sermon.passage,
-                      style: const TextStyle(color: semearLightGrey),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.arrow_drop_down,
-                color: semearLightGrey,
-              ),
-            ],
-          ),
-        ),
-        onTap: () async => state._onExpandablePressed(index, sermon),
+  Widget _buildCollapsed(Sermon sermon, int index) => SemearCollapsedSermonCard(
+        sermon: sermon,
+        onPressed: () async => state._onExpandablePressed(index, sermon),
+        onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
       );
 
-  Widget _buildExpanded(BuildContext context, Sermon sermon, int index) => Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          InkWell(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              sermon.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.0,
-                                color: semearOrange,
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            Text(
-                              sermon.passage,
-                              style: const TextStyle(color: semearLightGrey),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(
-                        Icons.arrow_drop_up,
-                        color: semearLightGrey,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    'Pregador: ${sermon.preacher}',
-                    style: const TextStyle(color: semearLightGrey),
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    sermon.date,
-                    style: const TextStyle(color: semearLightGrey),
-                  ),
-                ],
-              ),
-            ),
-            onTap: () => state._onExpandablePressed(index, sermon),
-          ),
-          state._isLoadingAudio ? _buildLoadingAudio() : _buildPlayer(context, sermon)
-        ],
+  Widget _buildExpanded(BuildContext context, Sermon sermon, int index) =>
+      SemearExpandedSermonCard(
+        sermon: sermon,
+        onPressed: () => state._onExpandablePressed(index, sermon),
+        onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
+        playerWidget:
+            state._isLoadingAudio ? _buildLoadingAudio() : _buildPlayer(context, sermon),
       );
 
   Widget _buildLoadingAudio() => const Padding(

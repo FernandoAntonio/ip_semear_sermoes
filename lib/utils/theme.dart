@@ -20,6 +20,11 @@ ThemeData getTheme() {
     textButtonTheme:
         TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: semearGreen)),
     colorScheme: const ColorScheme.dark().copyWith(secondary: semearGreen),
+    checkboxTheme: const CheckboxThemeData(
+      fillColor: MaterialStatePropertyAll(Colors.transparent),
+      checkColor: MaterialStatePropertyAll(semearGreen),
+      side: BorderSide(color: semearOrange),
+    ),
   );
 }
 

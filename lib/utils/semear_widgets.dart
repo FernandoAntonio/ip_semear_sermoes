@@ -248,7 +248,9 @@ class SemearCollapsedSermonCard extends StatelessWidget {
                                     color: semearGreen,
                                   )
                                 : const SizedBox.shrink(),
-                            const SizedBox(width: 4.0),
+                            sermon.bookmarkInSeconds != null
+                                ? const SizedBox(width: 4.0)
+                                : const SizedBox.shrink(),
                             SizedBox(
                               width: 240.0,
                               child: Text(

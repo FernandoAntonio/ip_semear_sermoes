@@ -531,12 +531,13 @@ class BarVisualizer extends CustomPainter {
   BarVisualizer({
     required this.waveData,
     required this.width,
+    required bool isCompleted,
   })  : _height = 20.0,
         _minimumHeight = 5.0 * -1,
         _density = 20,
         _gap = 1,
         wavePaint = Paint()
-          ..color = semearOrange
+          ..color = isCompleted ? semearGreen : semearOrange
           ..style = PaintingStyle.fill;
 
   @override

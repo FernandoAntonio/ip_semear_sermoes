@@ -248,6 +248,7 @@ class _SermonsSingleBookPageView
                           foregroundPainter: BarVisualizer(
                             waveData: value.data,
                             width: MediaQuery.of(context).size.width,
+                            isCompleted: state._sermons[index].completed,
                           ),
                         ),
                       ),

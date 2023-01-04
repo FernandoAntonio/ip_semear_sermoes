@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'constants.dart';
+import '../utils/constants.dart';
 
 ThemeData getTheme() {
   return ThemeData.dark().copyWith(

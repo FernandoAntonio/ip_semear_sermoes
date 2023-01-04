@@ -8,8 +8,9 @@ import '../repository/semear_repository.dart';
 import '../utils/audio_player_handler.dart';
 import '../utils/constants.dart';
 import '../utils/dependency_injection.dart';
-import '../utils/semear_widgets.dart';
+import '../utils/enums.dart';
 import '../utils/widget_view.dart';
+import 'semear_widgets.dart';
 
 class SermonsPage extends StatefulWidget {
   final Book book;
@@ -23,7 +24,7 @@ class SermonsPage extends StatefulWidget {
 class SermonsSingleBookPageController extends State<SermonsPage> {
   late SemearRepository _repository;
   late List<ExpandableController> _expandableControllers;
-  late bool _isLoadingAudio;
+  late PlayerStatus _playerStatus;
   late bool _hasError;
   late AudioPlayerHandler _audioHandler;
   late SemearDatabase _database;
@@ -101,12 +102,19 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
   void _setSermonCompleted(int sermonId, bool completed) =>
       _database.updateSermonCompleted(sermonId, completed);
 
+  void _onRetryLoadingSermon(Sermon sermon) => _loadAudio(sermon);
+
   Future<void> _loadAudio(Sermon sermon) async {
-    setState(() => _isLoadingAudio = true);
+    setState(() => _playerStatus = PlayerStatus.loading);
 
-    await _audioHandler.setSermon(sermon);
+    final loadingAudioSucccess =
+        await _audioHandler.setSermon(sermon).timeout(const Duration(seconds: 30));
 
-    setState(() => _isLoadingAudio = false);
+    if (loadingAudioSucccess) {
+      setState(() => _playerStatus = PlayerStatus.loaded);
+    } else if (!loadingAudioSucccess) {
+      setState(() => _playerStatus = PlayerStatus.error);
+    }
   }
 
   Future<void> _onReloadData() async {
@@ -122,7 +130,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     _audioHandler = getIt<AudioPlayerHandler>();
     _expandableControllers = [];
     _hasError = false;
-    _isLoadingAudio = false;
+    _playerStatus = PlayerStatus.loading;
   }
 
   @override
@@ -189,14 +197,31 @@ class _SermonsSingleBookPageView
         onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
       );
 
-  Widget _buildExpanded(BuildContext context, Sermon sermon, int index) =>
-      SemearExpandedSermonCard(
-        sermon: sermon,
-        onPressed: () => state._onExpandablePressed(index, sermon),
-        onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
-        playerWidget:
-            state._isLoadingAudio ? _buildLoadingAudio() : _buildPlayer(context, sermon),
-      );
+  Widget _buildExpanded(BuildContext context, Sermon sermon, int index) {
+    late Widget playerWidget;
+
+    switch (state._playerStatus) {
+      case PlayerStatus.loading:
+        playerWidget = _buildLoadingAudio();
+        break;
+      case PlayerStatus.loaded:
+        playerWidget = _buildPlayer(context, sermon);
+        break;
+      case PlayerStatus.error:
+        playerWidget = Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SemearErrorWidget(() => state._onRetryLoadingSermon(sermon)),
+        );
+        break;
+    }
+
+    return SemearExpandedSermonCard(
+      sermon: sermon,
+      onPressed: () => state._onExpandablePressed(index, sermon),
+      onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
+      playerWidget: playerWidget,
+    );
+  }
 
   Widget _buildLoadingAudio() => const Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),

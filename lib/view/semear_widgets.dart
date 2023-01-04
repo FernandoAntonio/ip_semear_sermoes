@@ -3,9 +3,9 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 
 import '../database/semear_database.dart';
-import 'audio_player_handler.dart';
-import 'constants.dart';
-import 'extensions.dart';
+import '../utils/audio_player_handler.dart';
+import '../utils/constants.dart';
+import '../utils/extensions.dart';
 import 'theme.dart';
 
 class SemearLoadingWidget extends StatelessWidget {
@@ -342,7 +342,9 @@ class SemearExpandedSermonCard extends StatelessWidget {
                                         color: semearGreen,
                                       )
                                     : const SizedBox.shrink(),
-                                const SizedBox(width: 4.0),
+                                sermon.bookmarkInSeconds != null
+                                    ? const SizedBox(width: 4.0)
+                                    : const SizedBox.shrink(),
                                 SizedBox(
                                   width: 240.0,
                                   child: AutoScrollText(

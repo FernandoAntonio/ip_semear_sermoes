@@ -90,23 +90,28 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     await stop();
   }
 
-  Future<void> setSermon(Sermon sermon) async {
-    // Load the player.
-    final duration =
-        await _player.setAudioSource(AudioSource.uri(Uri.parse(sermon.mp3Url)));
-    final imageFile = await _getImageFileFromAssets('logotipo.png');
-    final imageFilePath = 'file://${imageFile.path}';
+  Future<bool> setSermon(Sermon sermon) async {
+    try {
+      // Load the player.
+      final duration =
+          await _player.setAudioSource(AudioSource.uri(Uri.parse(sermon.mp3Url)));
+      final imageFile = await _getImageFileFromAssets('logotipo.png');
+      final imageFilePath = 'file://${imageFile.path}';
 
-    final MediaItem currentItem = MediaItem(
-      id: sermon.mp3Url,
-      album: sermon.series,
-      title: sermon.title,
-      artist: sermon.preacher,
-      artUri: Uri.parse(imageFilePath),
-      duration: duration,
-    );
+      final MediaItem currentItem = MediaItem(
+        id: sermon.mp3Url,
+        album: sermon.series,
+        title: sermon.title,
+        artist: sermon.preacher,
+        artUri: Uri.parse(imageFilePath),
+        duration: duration,
+      );
 
-    mediaItem.add(currentItem);
+      mediaItem.add(currentItem);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<File> _getImageFileFromAssets(String path) async {
@@ -133,11 +138,6 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     await _player.stopVisualizer();
     await _player.stop();
     await _player.seek(const Duration());
-    progressNotifier.value = ProgressBarState(
-      current: Duration.zero,
-      buffered: Duration.zero,
-      total: Duration.zero,
-    );
   }
 
   PlaybackState _transformEvent(PlaybackEvent event) {

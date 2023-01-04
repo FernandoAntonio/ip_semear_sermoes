@@ -2,7 +2,8 @@
 
 Uma aplicação desenvolvida em [Flutter](https://flutter.dev) com o intuito de ouvir sermões presentes no site da [IP Semear](https://ipsemear.org/sermoes-audio/) de forma simples e prática, a organização de livros e capítulos de cada sermão é idêntica ao website.
 
-Também conta com reprodução em segundo plano e controle de pausa e parada na barra de tarefas do Android.
+Conta com reprodução em segundo plano e controle de pausa e parada na barra de tarefas do Android.
+Ainda é possível salvar o progresso por meio de um marcador de progresso do sermão, tão quanto um marcador de que o sermão já foi ou não ouvido pelo usuário.
 
 # Download
 

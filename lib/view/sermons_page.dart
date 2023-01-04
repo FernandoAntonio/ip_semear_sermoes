@@ -8,8 +8,9 @@ import '../repository/semear_repository.dart';
 import '../utils/audio_player_handler.dart';
 import '../utils/constants.dart';
 import '../utils/dependency_injection.dart';
-import '../utils/semear_widgets.dart';
+import '../utils/enums.dart';
 import '../utils/widget_view.dart';
+import 'semear_widgets.dart';
 
 class SermonsPage extends StatefulWidget {
   final Book book;
@@ -23,9 +24,10 @@ class SermonsPage extends StatefulWidget {
 class SermonsSingleBookPageController extends State<SermonsPage> {
   late SemearRepository _repository;
   late List<ExpandableController> _expandableControllers;
-  late bool _isLoadingAudio;
+  late PlayerStatus _playerStatus;
   late bool _hasError;
   late AudioPlayerHandler _audioHandler;
+  late List<Sermon> _sermons;
   late SemearDatabase _database;
 
   Stream<List<Sermon>> _watchAllSermonsFromBook() =>
@@ -80,13 +82,13 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     }
   }
 
-  Future<void> _onExpandablePressed(int index, Sermon sermon) async {
+  Future<void> _onExpandablePressed(int index) async {
     setState(() {
       _expandableControllers[index].toggle();
     });
 
     if (_expandableControllers[index].expanded) {
-      _loadAudio(sermon);
+      _loadAudio(_sermons[index]);
     } else if (!_expandableControllers[index].expanded) {
       _stopAudio();
     }
@@ -101,12 +103,19 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
   void _setSermonCompleted(int sermonId, bool completed) =>
       _database.updateSermonCompleted(sermonId, completed);
 
+  void _onRetryLoadingSermon(Sermon sermon) => _loadAudio(sermon);
+
   Future<void> _loadAudio(Sermon sermon) async {
-    setState(() => _isLoadingAudio = true);
+    setState(() => _playerStatus = PlayerStatus.loading);
 
-    await _audioHandler.setSermon(sermon);
+    final loadingAudioSucccess =
+        await _audioHandler.setSermon(sermon).timeout(const Duration(seconds: 30));
 
-    setState(() => _isLoadingAudio = false);
+    if (loadingAudioSucccess) {
+      setState(() => _playerStatus = PlayerStatus.loaded);
+    } else if (!loadingAudioSucccess) {
+      setState(() => _playerStatus = PlayerStatus.error);
+    }
   }
 
   Future<void> _onReloadData() async {
@@ -120,9 +129,10 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     _database = getIt<SemearDatabase>();
     _repository = getIt<SemearRepository>();
     _audioHandler = getIt<AudioPlayerHandler>();
+    _sermons = [];
     _expandableControllers = [];
     _hasError = false;
-    _isLoadingAudio = false;
+    _playerStatus = PlayerStatus.loading;
   }
 
   @override
@@ -150,22 +160,22 @@ class _SermonsSingleBookPageView
                 stream: state._watchAllSermonsFromBook(),
                 builder: (context, snapshot) {
                   if (snapshot.data != null && snapshot.data!.isNotEmpty) {
+                    state._sermons = snapshot.data!;
                     snapshot.data?.forEach(
                         (_) => state._expandableControllers.add(ExpandableController()));
 
                     return LiquidPullToRefresh(
                       onRefresh: state._onReloadData,
                       child: ListView.builder(
-                        itemCount: snapshot.data!.length,
+                        itemCount: state._sermons.length,
                         padding: const EdgeInsets.all(4.0),
                         itemBuilder: (context, index) => Column(
                           children: [
                             SemearPullToRefresh(index: index),
                             SemearSermonCard(
                               controller: state._expandableControllers[index],
-                              collapsed: _buildCollapsed(snapshot.data![index], index),
-                              expanded:
-                                  _buildExpanded(context, snapshot.data![index], index),
+                              collapsed: _buildCollapsed(index),
+                              expanded: _buildExpanded(context, index),
                             ),
                           ],
                         ),
@@ -183,27 +193,46 @@ class _SermonsSingleBookPageView
     );
   }
 
-  Widget _buildCollapsed(Sermon sermon, int index) => SemearCollapsedSermonCard(
-        sermon: sermon,
-        onPressed: () async => state._onExpandablePressed(index, sermon),
-        onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
+  Widget _buildCollapsed(int index) => SemearCollapsedSermonCard(
+        sermon: state._sermons[index],
+        onPressed: () async => state._onExpandablePressed(index),
+        onCheckboxPressed: (completed) =>
+            state._setSermonCompleted(state._sermons[index].id, completed),
       );
 
-  Widget _buildExpanded(BuildContext context, Sermon sermon, int index) =>
-      SemearExpandedSermonCard(
-        sermon: sermon,
-        onPressed: () => state._onExpandablePressed(index, sermon),
-        onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
-        playerWidget:
-            state._isLoadingAudio ? _buildLoadingAudio() : _buildPlayer(context, sermon),
-      );
+  Widget _buildExpanded(BuildContext context, int index) {
+    final sermon = state._sermons[index];
+    late Widget playerWidget;
+
+    switch (state._playerStatus) {
+      case PlayerStatus.loading:
+        playerWidget = _buildLoadingAudio();
+        break;
+      case PlayerStatus.loaded:
+        playerWidget = _buildPlayer(context, index);
+        break;
+      case PlayerStatus.error:
+        playerWidget = Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SemearErrorWidget(() => state._onRetryLoadingSermon(sermon)),
+        );
+        break;
+    }
+
+    return SemearExpandedSermonCard(
+      sermon: sermon,
+      onPressed: () => state._onExpandablePressed(index),
+      onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
+      playerWidget: playerWidget,
+    );
+  }
 
   Widget _buildLoadingAudio() => const Padding(
         padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
         child: Center(child: CircularProgressIndicator()),
       );
 
-  Widget _buildPlayer(BuildContext context, Sermon sermon) => Stack(
+  Widget _buildPlayer(BuildContext context, index) => Stack(
         children: [
           Positioned(
             bottom: 0.0,
@@ -219,6 +248,7 @@ class _SermonsSingleBookPageView
                           foregroundPainter: BarVisualizer(
                             waveData: value.data,
                             width: MediaQuery.of(context).size.width,
+                            isCompleted: state._sermons[index].completed,
                           ),
                         ),
                       ),
@@ -237,15 +267,11 @@ class _SermonsSingleBookPageView
                 ValueListenableBuilder<ProgressBarState>(
                   valueListenable: state._audioHandler.progressNotifier,
                   builder: (_, value, __) {
-                    if (value.total != const Duration()) {
-                      return SemearSlider(
-                        progressBarState: value,
-                        onSeekChanged: state._onSeekChanged,
-                        bookmarkInSeconds: sermon.bookmarkInSeconds,
-                      );
-                    } else {
-                      return const SizedBox.shrink();
-                    }
+                    return SemearSlider(
+                      progressBarState: value,
+                      onSeekChanged: state._onSeekChanged,
+                      bookmarkInSeconds: state._sermons[index].bookmarkInSeconds,
+                    );
                   },
                 ),
                 Row(
@@ -262,7 +288,7 @@ class _SermonsSingleBookPageView
                         _buildForward10(),
                       ],
                     ),
-                    _buildBookmark(sermon),
+                    _buildBookmark(state._sermons[index]),
                   ],
                 ),
               ],

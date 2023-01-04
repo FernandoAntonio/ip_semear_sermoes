@@ -2,11 +2,12 @@ import 'package:background_mode_new/background_mode_new.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'pages/books_page.dart';
 import 'utils/dependency_injection.dart';
-import 'utils/theme.dart';
+import 'view/books_page.dart';
+import 'view/theme.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   BackgroundMode.start();
   await initDependencyInjection();
   runApp(const MyApp());

@@ -4,8 +4,8 @@ import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import '../database/semear_database.dart';
 import '../repository/semear_repository.dart';
 import '../utils/dependency_injection.dart';
-import '../utils/semear_widgets.dart';
 import '../utils/widget_view.dart';
+import 'semear_widgets.dart';
 import 'sermons_page.dart';
 
 class BooksPage extends StatefulWidget {

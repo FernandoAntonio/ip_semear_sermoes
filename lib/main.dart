@@ -1,3 +1,4 @@
+import 'package:background_mode_new/background_mode_new.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -6,6 +7,7 @@ import 'utils/dependency_injection.dart';
 import 'utils/theme.dart';
 
 void main() async {
+  BackgroundMode.start();
   await initDependencyInjection();
   runApp(const MyApp());
 }

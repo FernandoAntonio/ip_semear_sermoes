@@ -27,6 +27,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
   late PlayerStatus _playerStatus;
   late bool _hasError;
   late AudioPlayerHandler _audioHandler;
+  late List<Sermon> _sermons;
   late SemearDatabase _database;
 
   Stream<List<Sermon>> _watchAllSermonsFromBook() =>
@@ -81,13 +82,13 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     }
   }
 
-  Future<void> _onExpandablePressed(int index, Sermon sermon) async {
+  Future<void> _onExpandablePressed(int index) async {
     setState(() {
       _expandableControllers[index].toggle();
     });
 
     if (_expandableControllers[index].expanded) {
-      _loadAudio(sermon);
+      _loadAudio(_sermons[index]);
     } else if (!_expandableControllers[index].expanded) {
       _stopAudio();
     }
@@ -128,6 +129,7 @@ class SermonsSingleBookPageController extends State<SermonsPage> {
     _database = getIt<SemearDatabase>();
     _repository = getIt<SemearRepository>();
     _audioHandler = getIt<AudioPlayerHandler>();
+    _sermons = [];
     _expandableControllers = [];
     _hasError = false;
     _playerStatus = PlayerStatus.loading;
@@ -158,22 +160,22 @@ class _SermonsSingleBookPageView
                 stream: state._watchAllSermonsFromBook(),
                 builder: (context, snapshot) {
                   if (snapshot.data != null && snapshot.data!.isNotEmpty) {
+                    state._sermons = snapshot.data!;
                     snapshot.data?.forEach(
                         (_) => state._expandableControllers.add(ExpandableController()));
 
                     return LiquidPullToRefresh(
                       onRefresh: state._onReloadData,
                       child: ListView.builder(
-                        itemCount: snapshot.data!.length,
+                        itemCount: state._sermons.length,
                         padding: const EdgeInsets.all(4.0),
                         itemBuilder: (context, index) => Column(
                           children: [
                             SemearPullToRefresh(index: index),
                             SemearSermonCard(
                               controller: state._expandableControllers[index],
-                              collapsed: _buildCollapsed(snapshot.data![index], index),
-                              expanded:
-                                  _buildExpanded(context, snapshot.data![index], index),
+                              collapsed: _buildCollapsed(index),
+                              expanded: _buildExpanded(context, index),
                             ),
                           ],
                         ),
@@ -191,13 +193,15 @@ class _SermonsSingleBookPageView
     );
   }
 
-  Widget _buildCollapsed(Sermon sermon, int index) => SemearCollapsedSermonCard(
-        sermon: sermon,
-        onPressed: () async => state._onExpandablePressed(index, sermon),
-        onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
+  Widget _buildCollapsed(int index) => SemearCollapsedSermonCard(
+        sermon: state._sermons[index],
+        onPressed: () async => state._onExpandablePressed(index),
+        onCheckboxPressed: (completed) =>
+            state._setSermonCompleted(state._sermons[index].id, completed),
       );
 
-  Widget _buildExpanded(BuildContext context, Sermon sermon, int index) {
+  Widget _buildExpanded(BuildContext context, int index) {
+    final sermon = state._sermons[index];
     late Widget playerWidget;
 
     switch (state._playerStatus) {
@@ -205,7 +209,7 @@ class _SermonsSingleBookPageView
         playerWidget = _buildLoadingAudio();
         break;
       case PlayerStatus.loaded:
-        playerWidget = _buildPlayer(context, sermon);
+        playerWidget = _buildPlayer(context, index);
         break;
       case PlayerStatus.error:
         playerWidget = Padding(
@@ -217,7 +221,7 @@ class _SermonsSingleBookPageView
 
     return SemearExpandedSermonCard(
       sermon: sermon,
-      onPressed: () => state._onExpandablePressed(index, sermon),
+      onPressed: () => state._onExpandablePressed(index),
       onCheckboxPressed: (completed) => state._setSermonCompleted(sermon.id, completed),
       playerWidget: playerWidget,
     );
@@ -228,7 +232,7 @@ class _SermonsSingleBookPageView
         child: Center(child: CircularProgressIndicator()),
       );
 
-  Widget _buildPlayer(BuildContext context, Sermon sermon) => Stack(
+  Widget _buildPlayer(BuildContext context, index) => Stack(
         children: [
           Positioned(
             bottom: 0.0,
@@ -262,15 +266,11 @@ class _SermonsSingleBookPageView
                 ValueListenableBuilder<ProgressBarState>(
                   valueListenable: state._audioHandler.progressNotifier,
                   builder: (_, value, __) {
-                    if (value.total != const Duration()) {
-                      return SemearSlider(
-                        progressBarState: value,
-                        onSeekChanged: state._onSeekChanged,
-                        bookmarkInSeconds: sermon.bookmarkInSeconds,
-                      );
-                    } else {
-                      return const SizedBox.shrink();
-                    }
+                    return SemearSlider(
+                      progressBarState: value,
+                      onSeekChanged: state._onSeekChanged,
+                      bookmarkInSeconds: state._sermons[index].bookmarkInSeconds,
+                    );
                   },
                 ),
                 Row(
@@ -287,7 +287,7 @@ class _SermonsSingleBookPageView
                         _buildForward10(),
                       ],
                     ),
-                    _buildBookmark(sermon),
+                    _buildBookmark(state._sermons[index]),
                   ],
                 ),
               ],

@@ -7,6 +7,7 @@ import 'view/books_page.dart';
 import 'view/theme.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   BackgroundMode.start();
   await initDependencyInjection();
   runApp(const MyApp());

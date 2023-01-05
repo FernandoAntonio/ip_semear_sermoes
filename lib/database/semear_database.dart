@@ -5,71 +5,9 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'semear_tables.dart';
+
 part 'semear_database.g.dart';
-
-class Books extends Table {
-  TextColumn get id => text()();
-  TextColumn get title => text()();
-  TextColumn get url => text()();
-}
-
-class Sermons extends Table {
-  TextColumn get id => text()();
-  TextColumn get bookId => text()();
-  TextColumn get date => text()();
-  TextColumn get title => text()();
-  TextColumn get preacher => text()();
-  TextColumn get series => text()();
-  TextColumn get passage => text()();
-  TextColumn get mp3Url => text()();
-  TextColumn get downloadedMp3Path => text().nullable()();
-  BoolColumn get completed => boolean().withDefault(const Constant(false))();
-}
-
-@DriftDatabase(tables: [Books, Sermons])
-class SemearDatabase extends _$SemearDatabase {
-  SemearDatabase() : super(_openConnection());
-
-  @override
-  int get schemaVersion => 1;
-
-  //CREATE
-  Future<void> storeAllBooks(List<Book> bookList) async {
-    for (Book book in bookList) {
-      await into(books).insert(BooksCompanion.insert(
-        id: book.id,
-        title: book.title,
-        url: book.url,
-      ));
-    }
-  }
-
-  Future<void> storeAllSermons(List<Sermon> sermonList) async {
-    for (Sermon sermon in sermonList) {
-      await into(sermons).insert(SermonsCompanion.insert(
-        id: sermon.id,
-        bookId: sermon.bookId,
-        title: sermon.title,
-        date: sermon.date,
-        mp3Url: sermon.mp3Url,
-        passage: sermon.passage,
-        series: sermon.series,
-        preacher: sermon.preacher,
-      ));
-    }
-  }
-
-  //READ
-  Future<List<Book>> getAllBooks() => select(books).get();
-  Future<List<Sermon>> getAllSermonsFromBookId(String bookId) =>
-      (select(sermons)..where((sermon) => sermon.bookId.equals(bookId))).get();
-
-  //DELETE
-  Future<void> deleteAllBooks() => delete(books).go();
-  Future<void> deleteAllSermons() => delete(sermons).go();
-  Future<void> deleteAllSermonsWithBookId(String bookId) =>
-      (delete(sermons)..where((sermon) => sermon.bookId.equals(bookId))).go();
-}
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
@@ -77,4 +15,88 @@ LazyDatabase _openConnection() {
     final file = File(p.join(dbFolder.path, 'db.sqlite'));
     return NativeDatabase.createInBackground(file, logStatements: true);
   });
+}
+
+@DriftDatabase(tables: [Books, Sermons])
+class SemearDatabase extends _$SemearDatabase {
+  SemearDatabase() : super(_openConnection());
+
+  @override
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.drop(books);
+          await m.drop(sermons);
+          await m.createAll();
+        }
+      },
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
+  }
+
+  //CREATE
+  Future<void> storeOrUpdateAllBooks(List<BooksCompanion> bookList) async {
+    for (BooksCompanion bookCompanion in bookList) {
+      final bookList = await (select(books)
+            ..where((b) => b.title.equals(bookCompanion.title.value))
+            ..where((s) => s.url.equals(bookCompanion.url.value)))
+          .get();
+      if (bookList.isNotEmpty && bookList.length == 1) {
+        await update(books).replace(bookList.first);
+      } else if (bookList.isEmpty) {
+        await into(books).insert(bookCompanion);
+      } else {
+        await deleteAllBooks();
+        await deleteAllSermons();
+      }
+    }
+  }
+
+  Future<void> storeOrUpdateAllSermons(List<SermonsCompanion> sermonList) async {
+    for (SermonsCompanion sermonCompanion in sermonList) {
+      final sermonList = await (select(sermons)
+            ..where((s) => s.bookId.equals(sermonCompanion.bookId.value))
+            ..where((s) => s.title.equals(sermonCompanion.title.value))
+            ..where((s) => s.mp3Url.equals(sermonCompanion.mp3Url.value)))
+          .get();
+      if (sermonList.isNotEmpty && sermonList.length == 1) {
+        await update(sermons).replace(sermonList.first);
+      } else if (sermonList.isEmpty) {
+        await into(sermons).insert(sermonCompanion);
+      } else {
+        await deleteAllSermons();
+      }
+    }
+  }
+
+  //READ
+  Stream<List<Book>> watchAllBooks() => select(books).watch();
+  Stream<List<Sermon>> watchAllSermonsFromBookId(int bookId) =>
+      (select(sermons)..where((sermon) => sermon.bookId.equals(bookId))).watch();
+
+  //UPDATE
+  Future<void> updateSermonBookmark(int sermonId, [int? bookmarkInSeconds]) =>
+      (update(sermons)..where((sermon) => sermon.id.equals(sermonId)))
+          .write(SermonsCompanion(bookmarkInSeconds: Value(bookmarkInSeconds)));
+
+  Future<void> updateSermonCompleted(int sermonId, bool completed) =>
+      (update(sermons)..where((sermon) => sermon.id.equals(sermonId)))
+          .write(SermonsCompanion(completed: Value(completed)));
+
+  //DELETE
+  Future<void> deleteAllBooks() => delete(books).go();
+
+  Future<void> deleteAllSermons() => delete(sermons).go();
+
+  Future<void> deleteAllSermonsWithBookId(int bookId) =>
+      (delete(sermons)..where((sermon) => sermon.bookId.equals(bookId))).go();
 }

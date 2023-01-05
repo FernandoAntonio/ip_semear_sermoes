@@ -4,14 +4,14 @@ part of 'semear_database.dart';
 
 // ignore_for_file: type=lint
 class Book extends DataClass implements Insertable<Book> {
-  final String id;
+  final int id;
   final String title;
   final String url;
   const Book({required this.id, required this.title, required this.url});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
+    map['id'] = Variable<int>(id);
     map['title'] = Variable<String>(title);
     map['url'] = Variable<String>(url);
     return map;
@@ -29,7 +29,7 @@ class Book extends DataClass implements Insertable<Book> {
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Book(
-      id: serializer.fromJson<String>(json['id']),
+      id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       url: serializer.fromJson<String>(json['url']),
     );
@@ -38,13 +38,13 @@ class Book extends DataClass implements Insertable<Book> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
+      'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
       'url': serializer.toJson<String>(url),
     };
   }
 
-  Book copyWith({String? id, String? title, String? url}) => Book(
+  Book copyWith({int? id, String? title, String? url}) => Book(
         id: id ?? this.id,
         title: title ?? this.title,
         url: url ?? this.url,
@@ -71,7 +71,7 @@ class Book extends DataClass implements Insertable<Book> {
 }
 
 class BooksCompanion extends UpdateCompanion<Book> {
-  final Value<String> id;
+  final Value<int> id;
   final Value<String> title;
   final Value<String> url;
   const BooksCompanion({
@@ -80,14 +80,13 @@ class BooksCompanion extends UpdateCompanion<Book> {
     this.url = const Value.absent(),
   });
   BooksCompanion.insert({
-    required String id,
+    this.id = const Value.absent(),
     required String title,
     required String url,
-  })  : id = Value(id),
-        title = Value(title),
+  })  : title = Value(title),
         url = Value(url);
   static Insertable<Book> custom({
-    Expression<String>? id,
+    Expression<int>? id,
     Expression<String>? title,
     Expression<String>? url,
   }) {
@@ -99,7 +98,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
   }
 
   BooksCompanion copyWith(
-      {Value<String>? id, Value<String>? title, Value<String>? url}) {
+      {Value<int>? id, Value<String>? title, Value<String>? url}) {
     return BooksCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
@@ -111,7 +110,7 @@ class BooksCompanion extends UpdateCompanion<Book> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<String>(id.value);
+      map['id'] = Variable<int>(id.value);
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
@@ -140,9 +139,13 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   $BooksTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
       'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -166,8 +169,6 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -185,13 +186,13 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => const {};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Book map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Book(
       id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       url: attachedDatabase.typeMapping
@@ -206,14 +207,15 @@ class $BooksTable extends Books with TableInfo<$BooksTable, Book> {
 }
 
 class Sermon extends DataClass implements Insertable<Sermon> {
-  final String id;
-  final String bookId;
+  final int id;
+  final int bookId;
   final String date;
   final String title;
   final String preacher;
   final String series;
   final String passage;
   final String mp3Url;
+  final int? bookmarkInSeconds;
   final String? downloadedMp3Path;
   final bool completed;
   const Sermon(
@@ -225,19 +227,23 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       required this.series,
       required this.passage,
       required this.mp3Url,
+      this.bookmarkInSeconds,
       this.downloadedMp3Path,
       required this.completed});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['book_id'] = Variable<String>(bookId);
+    map['id'] = Variable<int>(id);
+    map['book_id'] = Variable<int>(bookId);
     map['date'] = Variable<String>(date);
     map['title'] = Variable<String>(title);
     map['preacher'] = Variable<String>(preacher);
     map['series'] = Variable<String>(series);
     map['passage'] = Variable<String>(passage);
     map['mp3_url'] = Variable<String>(mp3Url);
+    if (!nullToAbsent || bookmarkInSeconds != null) {
+      map['bookmark_in_seconds'] = Variable<int>(bookmarkInSeconds);
+    }
     if (!nullToAbsent || downloadedMp3Path != null) {
       map['downloaded_mp3_path'] = Variable<String>(downloadedMp3Path);
     }
@@ -255,6 +261,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       series: Value(series),
       passage: Value(passage),
       mp3Url: Value(mp3Url),
+      bookmarkInSeconds: bookmarkInSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bookmarkInSeconds),
       downloadedMp3Path: downloadedMp3Path == null && nullToAbsent
           ? const Value.absent()
           : Value(downloadedMp3Path),
@@ -266,14 +275,15 @@ class Sermon extends DataClass implements Insertable<Sermon> {
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Sermon(
-      id: serializer.fromJson<String>(json['id']),
-      bookId: serializer.fromJson<String>(json['bookId']),
+      id: serializer.fromJson<int>(json['id']),
+      bookId: serializer.fromJson<int>(json['bookId']),
       date: serializer.fromJson<String>(json['date']),
       title: serializer.fromJson<String>(json['title']),
       preacher: serializer.fromJson<String>(json['preacher']),
       series: serializer.fromJson<String>(json['series']),
       passage: serializer.fromJson<String>(json['passage']),
       mp3Url: serializer.fromJson<String>(json['mp3Url']),
+      bookmarkInSeconds: serializer.fromJson<int?>(json['bookmarkInSeconds']),
       downloadedMp3Path:
           serializer.fromJson<String?>(json['downloadedMp3Path']),
       completed: serializer.fromJson<bool>(json['completed']),
@@ -283,28 +293,30 @@ class Sermon extends DataClass implements Insertable<Sermon> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'bookId': serializer.toJson<String>(bookId),
+      'id': serializer.toJson<int>(id),
+      'bookId': serializer.toJson<int>(bookId),
       'date': serializer.toJson<String>(date),
       'title': serializer.toJson<String>(title),
       'preacher': serializer.toJson<String>(preacher),
       'series': serializer.toJson<String>(series),
       'passage': serializer.toJson<String>(passage),
       'mp3Url': serializer.toJson<String>(mp3Url),
+      'bookmarkInSeconds': serializer.toJson<int?>(bookmarkInSeconds),
       'downloadedMp3Path': serializer.toJson<String?>(downloadedMp3Path),
       'completed': serializer.toJson<bool>(completed),
     };
   }
 
   Sermon copyWith(
-          {String? id,
-          String? bookId,
+          {int? id,
+          int? bookId,
           String? date,
           String? title,
           String? preacher,
           String? series,
           String? passage,
           String? mp3Url,
+          Value<int?> bookmarkInSeconds = const Value.absent(),
           Value<String?> downloadedMp3Path = const Value.absent(),
           bool? completed}) =>
       Sermon(
@@ -316,6 +328,9 @@ class Sermon extends DataClass implements Insertable<Sermon> {
         series: series ?? this.series,
         passage: passage ?? this.passage,
         mp3Url: mp3Url ?? this.mp3Url,
+        bookmarkInSeconds: bookmarkInSeconds.present
+            ? bookmarkInSeconds.value
+            : this.bookmarkInSeconds,
         downloadedMp3Path: downloadedMp3Path.present
             ? downloadedMp3Path.value
             : this.downloadedMp3Path,
@@ -332,6 +347,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           ..write('series: $series, ')
           ..write('passage: $passage, ')
           ..write('mp3Url: $mp3Url, ')
+          ..write('bookmarkInSeconds: $bookmarkInSeconds, ')
           ..write('downloadedMp3Path: $downloadedMp3Path, ')
           ..write('completed: $completed')
           ..write(')'))
@@ -340,7 +356,7 @@ class Sermon extends DataClass implements Insertable<Sermon> {
 
   @override
   int get hashCode => Object.hash(id, bookId, date, title, preacher, series,
-      passage, mp3Url, downloadedMp3Path, completed);
+      passage, mp3Url, bookmarkInSeconds, downloadedMp3Path, completed);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -353,19 +369,21 @@ class Sermon extends DataClass implements Insertable<Sermon> {
           other.series == this.series &&
           other.passage == this.passage &&
           other.mp3Url == this.mp3Url &&
+          other.bookmarkInSeconds == this.bookmarkInSeconds &&
           other.downloadedMp3Path == this.downloadedMp3Path &&
           other.completed == this.completed);
 }
 
 class SermonsCompanion extends UpdateCompanion<Sermon> {
-  final Value<String> id;
-  final Value<String> bookId;
+  final Value<int> id;
+  final Value<int> bookId;
   final Value<String> date;
   final Value<String> title;
   final Value<String> preacher;
   final Value<String> series;
   final Value<String> passage;
   final Value<String> mp3Url;
+  final Value<int?> bookmarkInSeconds;
   final Value<String?> downloadedMp3Path;
   final Value<bool> completed;
   const SermonsCompanion({
@@ -377,22 +395,23 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     this.series = const Value.absent(),
     this.passage = const Value.absent(),
     this.mp3Url = const Value.absent(),
+    this.bookmarkInSeconds = const Value.absent(),
     this.downloadedMp3Path = const Value.absent(),
     this.completed = const Value.absent(),
   });
   SermonsCompanion.insert({
-    required String id,
-    required String bookId,
+    this.id = const Value.absent(),
+    required int bookId,
     required String date,
     required String title,
     required String preacher,
     required String series,
     required String passage,
     required String mp3Url,
+    this.bookmarkInSeconds = const Value.absent(),
     this.downloadedMp3Path = const Value.absent(),
     this.completed = const Value.absent(),
-  })  : id = Value(id),
-        bookId = Value(bookId),
+  })  : bookId = Value(bookId),
         date = Value(date),
         title = Value(title),
         preacher = Value(preacher),
@@ -400,14 +419,15 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
         passage = Value(passage),
         mp3Url = Value(mp3Url);
   static Insertable<Sermon> custom({
-    Expression<String>? id,
-    Expression<String>? bookId,
+    Expression<int>? id,
+    Expression<int>? bookId,
     Expression<String>? date,
     Expression<String>? title,
     Expression<String>? preacher,
     Expression<String>? series,
     Expression<String>? passage,
     Expression<String>? mp3Url,
+    Expression<int>? bookmarkInSeconds,
     Expression<String>? downloadedMp3Path,
     Expression<bool>? completed,
   }) {
@@ -420,20 +440,22 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       if (series != null) 'series': series,
       if (passage != null) 'passage': passage,
       if (mp3Url != null) 'mp3_url': mp3Url,
+      if (bookmarkInSeconds != null) 'bookmark_in_seconds': bookmarkInSeconds,
       if (downloadedMp3Path != null) 'downloaded_mp3_path': downloadedMp3Path,
       if (completed != null) 'completed': completed,
     });
   }
 
   SermonsCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? bookId,
+      {Value<int>? id,
+      Value<int>? bookId,
       Value<String>? date,
       Value<String>? title,
       Value<String>? preacher,
       Value<String>? series,
       Value<String>? passage,
       Value<String>? mp3Url,
+      Value<int?>? bookmarkInSeconds,
       Value<String?>? downloadedMp3Path,
       Value<bool>? completed}) {
     return SermonsCompanion(
@@ -445,6 +467,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
       series: series ?? this.series,
       passage: passage ?? this.passage,
       mp3Url: mp3Url ?? this.mp3Url,
+      bookmarkInSeconds: bookmarkInSeconds ?? this.bookmarkInSeconds,
       downloadedMp3Path: downloadedMp3Path ?? this.downloadedMp3Path,
       completed: completed ?? this.completed,
     );
@@ -454,10 +477,10 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<String>(id.value);
+      map['id'] = Variable<int>(id.value);
     }
     if (bookId.present) {
-      map['book_id'] = Variable<String>(bookId.value);
+      map['book_id'] = Variable<int>(bookId.value);
     }
     if (date.present) {
       map['date'] = Variable<String>(date.value);
@@ -476,6 +499,9 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
     }
     if (mp3Url.present) {
       map['mp3_url'] = Variable<String>(mp3Url.value);
+    }
+    if (bookmarkInSeconds.present) {
+      map['bookmark_in_seconds'] = Variable<int>(bookmarkInSeconds.value);
     }
     if (downloadedMp3Path.present) {
       map['downloaded_mp3_path'] = Variable<String>(downloadedMp3Path.value);
@@ -497,6 +523,7 @@ class SermonsCompanion extends UpdateCompanion<Sermon> {
           ..write('series: $series, ')
           ..write('passage: $passage, ')
           ..write('mp3Url: $mp3Url, ')
+          ..write('bookmarkInSeconds: $bookmarkInSeconds, ')
           ..write('downloadedMp3Path: $downloadedMp3Path, ')
           ..write('completed: $completed')
           ..write(')'))
@@ -511,14 +538,18 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
   $SermonsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
       'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
   static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
   @override
-  late final GeneratedColumn<String> bookId = GeneratedColumn<String>(
+  late final GeneratedColumn<int> bookId = GeneratedColumn<int>(
       'book_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
   late final GeneratedColumn<String> date = GeneratedColumn<String>(
@@ -551,6 +582,12 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
   late final GeneratedColumn<String> mp3Url = GeneratedColumn<String>(
       'mp3_url', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _bookmarkInSecondsMeta =
+      const VerificationMeta('bookmarkInSeconds');
+  @override
+  late final GeneratedColumn<int> bookmarkInSeconds = GeneratedColumn<int>(
+      'bookmark_in_seconds', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _downloadedMp3PathMeta =
       const VerificationMeta('downloadedMp3Path');
   @override
@@ -580,6 +617,7 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
         series,
         passage,
         mp3Url,
+        bookmarkInSeconds,
         downloadedMp3Path,
         completed
       ];
@@ -594,8 +632,6 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
     }
     if (data.containsKey('book_id')) {
       context.handle(_bookIdMeta,
@@ -639,6 +675,12 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
     } else if (isInserting) {
       context.missing(_mp3UrlMeta);
     }
+    if (data.containsKey('bookmark_in_seconds')) {
+      context.handle(
+          _bookmarkInSecondsMeta,
+          bookmarkInSeconds.isAcceptableOrUnknown(
+              data['bookmark_in_seconds']!, _bookmarkInSecondsMeta));
+    }
     if (data.containsKey('downloaded_mp3_path')) {
       context.handle(
           _downloadedMp3PathMeta,
@@ -653,15 +695,15 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => const {};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Sermon map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Sermon(
       id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       bookId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}book_id'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}book_id'])!,
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}date'])!,
       title: attachedDatabase.typeMapping
@@ -674,6 +716,8 @@ class $SermonsTable extends Sermons with TableInfo<$SermonsTable, Sermon> {
           .read(DriftSqlType.string, data['${effectivePrefix}passage'])!,
       mp3Url: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}mp3_url'])!,
+      bookmarkInSeconds: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}bookmark_in_seconds']),
       downloadedMp3Path: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}downloaded_mp3_path']),
       completed: attachedDatabase.typeMapping

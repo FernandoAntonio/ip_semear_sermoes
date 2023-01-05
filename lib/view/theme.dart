@@ -12,6 +12,7 @@ ThemeData getTheme() {
       activeTrackColor: semearGreen,
       inactiveTrackColor: semearLightGreyWithOpacity30,
       trackShape: GradientRectSliderTrackShape(),
+      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 7.0),
     ),
     cardTheme: const CardTheme(color: semearGrey),
     appBarTheme:

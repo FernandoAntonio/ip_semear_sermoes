@@ -7,7 +7,7 @@ Ainda é possível salvar o progresso por meio de um marcador de progresso do se
 
 # Download
 
-[Clique aqui](https://github.com/FernandoAntonio/ip_semear_sermoes/releases/download/1.1.0/ip_semear.apk) para fazer o download do APK diretamente do GitHub.
+[Clique aqui](https://github.com/FernandoAntonio/ip_semear_sermoes/releases/download/1.2.0/ip_semear.apk) para fazer o download do APK diretamente do GitHub.
 
 # Screenshots
 
